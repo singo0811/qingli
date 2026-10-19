@@ -1,0 +1,151 @@
+﻿<UserControl
+    x:Class="TidyWin.App.ModelsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    xmlns:vm="using:TidyWin.ViewModels">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="ModelCard" x:DataType="vm:ModelItemViewModel">
+            <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="14"
+                    PointerEntered="OnCardEnter" PointerExited="OnCardExit">
+                <Grid MinHeight="80" Padding="20,12,20,12" ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="3" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind Kind}" FontSize="12" CharacterSpacing="80" Foreground="{x:Bind local:Palette.Dim}" />
+                        <TextBlock Text="{x:Bind Name}" FontSize="17" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{x:Bind Detail}" FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Right" MinWidth="120">
+                        <TextBlock Text="{x:Bind SizeText}" FontFamily="Bahnschrift" FontSize="26" HorizontalAlignment="Right"
+                                   Foreground="{x:Bind local:Palette.Text}" />
+                        <CheckBox Content="{x:Bind loc:Loc.T('选中')}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" IsEnabled="{x:Bind CanSelect}"
+                                  HorizontalAlignment="Right" MinWidth="0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Padding="44,30,44,28">
+
+        <!-- 扫描中 -->
+        <StackPanel x:Name="ScanView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+            <TextBlock x:Name="ScanTitle" Text="{x:Bind loc:Loc.T('正在查找本地模型')}" FontSize="24" FontWeight="SemiBold"
+                       Foreground="{x:Bind local:Palette.Text}" HorizontalAlignment="Center" TextWrapping="Wrap" />
+            <ProgressBar IsIndeterminate="True" Width="440" Foreground="#35F2B3" />
+        </StackPanel>
+
+        <!-- 结果 -->
+        <Grid x:Name="ReadyView" RowSpacing="20" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock Text="{x:Bind loc:Loc.T('选中后可释放')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock x:Name="HeroNumber" Text="0" FontFamily="Bahnschrift" FontSize="116" FontWeight="SemiLight" LineHeight="120" />
+                    <TextBlock x:Name="HeroUnit" Text="B" FontFamily="Bahnschrift" FontSize="34" VerticalAlignment="Bottom"
+                               Margin="0,0,0,22" Foreground="{x:Bind local:Palette.Dim}" />
+                </StackPanel>
+                <TextBlock x:Name="HeroSub" FontSize="14" Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+
+            <ScrollViewer x:Name="ListScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+                <StackPanel Spacing="26">
+                    <StackPanel x:Name="EmptyBlock" Spacing="6" Visibility="Collapsed">
+                        <TextBlock Text="{x:Bind loc:Loc.T('没有找到本地模型')}" FontSize="18" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" />
+                        <TextBlock Text="{x:Bind loc:Loc.T('会在默认位置查找 Ollama、LM Studio 和 Hugging Face 的模型。如果你改过存放位置,请设置对应的环境变量(例如 OLLAMA_MODELS、HF_HOME)。')}"
+                                   FontSize="13" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="OllamaSection" Spacing="10">
+                        <TextBlock x:Name="OllamaHeader" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Dim}" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Ollama}" ItemTemplate="{StaticResource ModelCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="LmSection" Spacing="10">
+                        <TextBlock x:Name="LmHeader" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Dim}" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.LmStudio}" ItemTemplate="{StaticResource ModelCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="HfSection" Spacing="10">
+                        <TextBlock x:Name="HfHeader" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Dim}" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.HuggingFace}" ItemTemplate="{StaticResource ModelCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2" Background="#0C111A" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="16" Padding="18,12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="{x:Bind loc:Loc.T('清空选择')}" Click="OnClear" />
+                    <Button Grid.Column="1" Content="{x:Bind loc:Loc.T('重新扫描')}" Click="OnRescan" />
+                    <TextBlock x:Name="BarNote" Grid.Column="2" VerticalAlignment="Center" FontSize="12"
+                               Foreground="{x:Bind local:Palette.Faint}" TextTrimming="CharacterEllipsis" />
+                    <CheckBox x:Name="PreviewCheck" Grid.Column="3" Content="{x:Bind loc:Loc.T('只预览,不删除')}" VerticalAlignment="Center"
+                              Checked="OnModeChanged" Unchecked="OnModeChanged" />
+                    <Button x:Name="DeleteButton" Grid.Column="4" Click="OnDelete" Padding="30,11" CornerRadius="12"
+                            FontWeight="SemiBold" FontSize="15" Foreground="#1A0A06">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FFB84D" Offset="0" />
+                                <GradientStop Color="#FF7A45" Offset="1" />
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <TextBlock x:Name="DeleteButtonText" Text="{x:Bind loc:Loc.T('删除选中')}" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 删除中 -->
+        <StackPanel x:Name="CleaningView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18"
+                    Visibility="Collapsed" Width="640">
+            <TextBlock Text="{x:Bind loc:Loc.T('正在删除')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Name="CleanNumber" FontFamily="Bahnschrift" FontSize="96" FontWeight="SemiLight" />
+                <TextBlock x:Name="CleanUnit" FontFamily="Bahnschrift" FontSize="30" VerticalAlignment="Bottom" Margin="0,0,0,18"
+                           Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+            <ProgressBar x:Name="CleanBar" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="#FFB84D" />
+        </StackPanel>
+
+        <!-- 完成 -->
+        <StackPanel x:Name="DoneView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14"
+                    Visibility="Collapsed" Width="640">
+            <TextBlock x:Name="DoneLabel" Text="{x:Bind loc:Loc.T('已释放')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}"
+                       HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Name="DoneNumber" FontFamily="Bahnschrift" FontSize="120" FontWeight="SemiLight" />
+                <TextBlock x:Name="DoneUnit" FontFamily="Bahnschrift" FontSize="34" VerticalAlignment="Bottom" Margin="0,0,0,24"
+                           Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+            <TextBlock x:Name="DoneDetail" FontSize="15" Foreground="{x:Bind local:Palette.Text}" HorizontalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock x:Name="DoneNote" FontSize="13" Foreground="{x:Bind local:Palette.Dim}" HorizontalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+            <Button Content="{x:Bind loc:Loc.T('返回列表')}" Click="OnRescan" HorizontalAlignment="Center" Margin="0,12,0,0" Padding="26,10" />
+        </StackPanel>
+    </Grid>
+</UserControl>

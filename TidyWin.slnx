@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TidyWin.App/TidyWin.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/TidyWin.Core/TidyWin.Core.csproj" />
+    <Project Path="src/TidyWin.Platform/TidyWin.Platform.csproj" />
+    <Project Path="src/TidyWin.ViewModels/TidyWin.ViewModels.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TidyWin.Core.Tests/TidyWin.Core.Tests.csproj" />
+    <Project Path="tests/TidyWin.Platform.Tests/TidyWin.Platform.Tests.csproj" />
+  </Folder>
+</Solution>

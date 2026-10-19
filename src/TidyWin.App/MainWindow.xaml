@@ -1,0 +1,236 @@
+﻿<Window
+    x:Class="TidyWin.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    Title="TidyWin">
+
+    <Grid x:Name="Root" RequestedTheme="Dark">
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#E6070A12" Offset="0" />
+                <GradientStop Color="#D90C1424" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <!-- 氛围光:右上角一团薄荷色,左下角一团紫 -->
+        <Ellipse Width="620" Height="620" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-300,-220,0" IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#2635F2B3" Offset="0" />
+                    <GradientStop Color="#0035F2B3" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Ellipse Width="560" Height="560" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-260,0,0,-300" IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#22B38CFF" Offset="0" />
+                    <GradientStop Color="#00B38CFF" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 标题栏拖动区 -->
+            <Grid x:Name="DragBar" Grid.Row="0" Grid.ColumnSpan="2" Background="Transparent">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="30,0,0,0">
+                    <!-- 中 / EN:点一下换成另一种语言并重新打开 -->
+                    <Button x:Name="LangButton" Click="OnLanguage" Padding="8,2" MinWidth="40" Height="26" CornerRadius="13" Background="#14FFFFFF"
+                            BorderThickness="0" FontSize="12" FontWeight="SemiBold"
+                            ToolTipService.ToolTip="{x:Bind loc:Loc.T('切换语言(会重新打开程序)')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('切换语言(会重新打开程序)')}" />
+                    <!-- 检查更新;有新版本时变成一个醒目的按钮 -->
+                    <Button x:Name="UpdateButton" Click="OnUpdate" Padding="8,2" Height="26" CornerRadius="13" Background="#14FFFFFF"
+                            BorderThickness="0" FontSize="12" FontWeight="SemiBold"
+                            ToolTipService.ToolTip="{x:Bind loc:Loc.T('检查更新')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('检查更新')}">
+                        <FontIcon x:Name="UpdateIcon" Glyph="&#xE895;" FontSize="13" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 左侧导航 -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Padding="0,10,0,0" HorizontalAlignment="Center">
+                <Border Width="44" Height="44" CornerRadius="14" Margin="0,0,0,18">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#35F2B3" Offset="0" />
+                            <GradientStop Color="#6E7BFF" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="T" FontFamily="Bahnschrift" FontSize="26" FontWeight="Bold" Foreground="#05100C"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <Grid>
+                    <Rectangle x:Name="OverviewMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="OverviewNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavOverview" ToolTipService.ToolTip="{x:Bind loc:Loc.T('总览')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('总览')}">
+                        <FontIcon Glyph="&#xE80F;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="SysMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" />
+                    <Button x:Name="SysNav" Width="40" Height="40" CornerRadius="14" Background="#14FFFFFF"
+                            BorderThickness="0" Click="OnNavSystem" ToolTipService.ToolTip="{x:Bind loc:Loc.T('系统清理')}">
+                        <FontIcon Glyph="&#xE74D;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="AiMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="AiNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavAi" ToolTipService.ToolTip="{x:Bind loc:Loc.T('AI 垃圾清理')}">
+                        <FontIcon Glyph="&#xE945;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="EraseMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#FF7A45"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="EraseNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavErase" ToolTipService.ToolTip="{x:Bind loc:Loc.T('清除 AI 痕迹')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('清除 AI 痕迹')}">
+                        <FontIcon Glyph="&#xE75C;" FontSize="20" />
+                    </Button>
+                </Grid>
+                <Grid>
+                    <Rectangle x:Name="DiskMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#19B9E6"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="DiskNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavDisk" ToolTipService.ToolTip="{x:Bind loc:Loc.T('磁盘分析')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('磁盘分析')}">
+                        <FontIcon Glyph="&#xEDA2;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="SoftwareMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#19B9E6"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="SoftwareNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavSoftware" ToolTipService.ToolTip="{x:Bind loc:Loc.T('软件管理')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('软件管理')}">
+                        <FontIcon Glyph="&#xE71D;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="OptimizeMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="OptimizeNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavOptimize" ToolTipService.ToolTip="{x:Bind loc:Loc.T('小修小补')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('小修小补')}">
+                        <FontIcon Glyph="&#xE90F;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="ModelsMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#FFB84D"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="ModelsNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavModels" ToolTipService.ToolTip="{x:Bind loc:Loc.T('本地模型')}">
+                        <FontIcon Glyph="&#xE8F1;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="FinderMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#FFB84D"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="FinderNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavFinder" ToolTipService.ToolTip="{x:Bind loc:Loc.T('找 AI 大文件')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('找 AI 大文件')}">
+                        <FontIcon Glyph="&#xE721;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="MemMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="MemNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavMem" ToolTipService.ToolTip="{x:Bind loc:Loc.T('内存')}">
+                        <FontIcon Glyph="&#xE950;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="StartupMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#B38CFF"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="StartupNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavStartup" ToolTipService.ToolTip="{x:Bind loc:Loc.T('开机启动')}"
+                            AutomationProperties.Name="{x:Bind loc:Loc.T('开机启动')}">
+                        <FontIcon Glyph="&#xE7E8;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="SecMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#FF7A45"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="SecNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavSecurity" ToolTipService.ToolTip="{x:Bind loc:Loc.T('安全体检')}">
+                        <FontIcon Glyph="&#xE83D;" FontSize="20" />
+                    </Button>
+                </Grid>
+
+                <Grid>
+                    <Rectangle x:Name="StatusMark" Width="3" Height="26" RadiusX="1.5" RadiusY="1.5" Fill="#35F2B3"
+                               HorizontalAlignment="Left" Margin="-20,0,0,0" Opacity="0" />
+                    <Button x:Name="StatusNav" Width="40" Height="40" CornerRadius="14" Background="Transparent"
+                            BorderThickness="0" Click="OnNavStatus" ToolTipService.ToolTip="{x:Bind loc:Loc.T('系统健康')}">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="20" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <!-- 内容 -->
+            <!-- 页面在第一次打开时才创建 -->
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 磁盘紧张时的一条建议:只在有真实测量依据时出现,可以"稍后"收起 -->
+                <Border x:Name="Banner" Grid.Row="0" Visibility="Collapsed" Margin="28,2,28,0" Padding="16,10,12,10"
+                        CornerRadius="12" BorderThickness="1" Background="#1AFFB84D" BorderBrush="#55FFB84D">
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon x:Name="BannerIcon" Glyph="&#xE7BA;" FontSize="18" Foreground="#FFB84D" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock x:Name="BannerTitle" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock x:Name="BannerDetail" FontSize="12" Foreground="#B4BCCB" TextWrapping="Wrap" MaxLines="2" />
+                        </StackPanel>
+                        <Button x:Name="BannerGo" Grid.Column="2" Click="OnBannerGo" VerticalAlignment="Center" />
+                        <Button x:Name="BannerLater" Grid.Column="3" Content="{x:Bind loc:Loc.T('今天先不提醒')}" Click="OnBannerLater" VerticalAlignment="Center"
+                                Background="Transparent" BorderThickness="0" />
+                    </Grid>
+                </Border>
+
+                <Grid x:Name="PageHost" Grid.Row="1" />
+            </Grid>
+
+            <!-- 鲸鱼娘站在导航栏底部,气泡弹到内容区上方。窗口太矮放不下时由代码隐藏 -->
+            <local:MascotDock x:Name="Dock" Grid.Row="1" Grid.ColumnSpan="2" />
+        </Grid>
+    </Grid>
+</Window>

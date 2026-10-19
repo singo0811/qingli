@@ -1,0 +1,202 @@
+﻿<UserControl
+    x:Class="TidyWin.App.AiCleanPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    xmlns:vm="using:TidyWin.ViewModels">
+
+    <Grid Padding="44,30,44,28">
+
+        <!-- ───────── 扫描中 ───────── -->
+        <StackPanel x:Name="ScanView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="22">
+            <TextBlock x:Name="ScanTitle" Text="{x:Bind loc:Loc.T('正在盘点 AI 工具留下的东西')}" FontSize="24" FontWeight="SemiBold"
+                       Foreground="{x:Bind local:Palette.Text}" HorizontalAlignment="Center" TextWrapping="Wrap" />
+            <Grid x:Name="ScanTrack" Width="440" Height="4" CornerRadius="2" Background="#1A2231">
+                <Border x:Name="ScanSweep" Width="170" HorizontalAlignment="Left" CornerRadius="2">
+                    <Border.RenderTransform><TranslateTransform x:Name="ScanShift" X="-170" /></Border.RenderTransform>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#0035F2B3" Offset="0" />
+                            <GradientStop Color="#FF35F2B3" Offset="0.5" />
+                            <GradientStop Color="#0019B9E6" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
+            <TextBlock Text="{x:Bind loc:Loc.T('只读取,不会改动任何文件')}" FontSize="13" Foreground="{x:Bind local:Palette.Dim}"
+                       HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- ───────── 结果 ───────── -->
+        <Grid x:Name="ReadyView" RowSpacing="22" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 英雄数字 -->
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock x:Name="HeroLabel" Text="{x:Bind loc:Loc.T('本次可释放')}" FontSize="14" CharacterSpacing="140"
+                           Foreground="{x:Bind local:Palette.Dim}" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock x:Name="HeroNumber" Text="0" FontFamily="Bahnschrift" FontSize="116"
+                               FontWeight="SemiLight" LineHeight="120" />
+                    <TextBlock x:Name="HeroUnit" Text="B" FontFamily="Bahnschrift" FontSize="34"
+                               VerticalAlignment="Bottom" Margin="0,0,0,22" Foreground="{x:Bind local:Palette.Dim}" />
+                </StackPanel>
+                <TextBlock x:Name="HeroSub" FontSize="14" Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+
+            <!-- 地层条 -->
+            <StackPanel Grid.Row="1" Spacing="12">
+                <Grid x:Name="StrataBar" Height="14" ColumnSpacing="3" />
+                <StackPanel x:Name="StrataLegend" Orientation="Horizontal" Spacing="22" />
+            </StackPanel>
+
+            <!-- 列表 -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+                <StackPanel Spacing="26">
+                    <TextBlock x:Name="EmptyText" Text="{x:Bind loc:Loc.T('很干净,没有发现可以清理的 AI 缓存。')}" FontSize="16"
+                               Foreground="{x:Bind local:Palette.Dim}" Visibility="Collapsed" />
+
+                    <ItemsControl x:Name="ItemList" ItemsSource="{x:Bind ViewModel.Items}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="10">
+                                    <StackPanel.ChildrenTransitions>
+                                        <TransitionCollection>
+                                            <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="28" />
+                                        </TransitionCollection>
+                                    </StackPanel.ChildrenTransitions>
+                                </StackPanel>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AiItemViewModel">
+                                <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="14">
+                                    <Grid MinHeight="92">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Background="{x:Bind local:Palette.Tier(Safety)}"
+                                                CornerRadius="14,0,0,14" />
+
+                                        <StackPanel Grid.Column="1" Padding="20,14,12,14" Spacing="3" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{x:Bind Tool}" FontSize="12" CharacterSpacing="80"
+                                                           Foreground="{x:Bind local:Palette.Dim}" />
+                                                <TextBlock Text="{x:Bind TierLabel}" FontSize="12" FontWeight="SemiBold"
+                                                           Foreground="{x:Bind local:Palette.Tier(Safety)}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind Title}" FontSize="17" FontWeight="SemiBold"
+                                                       Foreground="{x:Bind local:Palette.Text}" />
+                                            <TextBlock Text="{x:Bind Hint}" FontSize="13"
+                                                       Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{x:Bind AgeNote}" FontSize="12" Foreground="#6FCDB0"
+                                                       Visibility="{x:Bind local:Palette.VisText(AgeNote)}" />
+                                            <TextBlock Text="{x:Bind Path}" FontFamily="Cascadia Mono" FontSize="11"
+                                                       Foreground="{x:Bind local:Palette.Faint}" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Padding="12,12,22,12" Spacing="6"
+                                                    VerticalAlignment="Center" HorizontalAlignment="Right" MinWidth="130">
+                                            <TextBlock Text="{x:Bind BytesText}" FontFamily="Bahnschrift" FontSize="28"
+                                                       HorizontalAlignment="Right" Foreground="{x:Bind local:Palette.Text}" />
+                                            <CheckBox Content="{x:Bind loc:Loc.T('加入清理')}" AutomationProperties.Name="{x:Bind Title}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                      IsEnabled="{x:Bind CanSelect}" HorizontalAlignment="Right" MinWidth="0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel x:Name="UntouchedBlock" Spacing="10" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{x:Bind local:Palette.Dim}" />
+                            <TextBlock Text="{x:Bind loc:Loc.T('已识别,不会触碰')}" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{x:Bind local:Palette.Dim}" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Untouched}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AiItemViewModel">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Padding="4,3">
+                                        <TextBlock Text="{x:Bind Tool}" FontSize="13" Foreground="{x:Bind local:Palette.Dim}" />
+                                        <TextBlock Text="{x:Bind Title}" FontSize="13" Foreground="{x:Bind local:Palette.Text}" />
+                                        <TextBlock Text="{x:Bind Consequence}" FontSize="12" Foreground="{x:Bind local:Palette.Faint}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 操作条 -->
+            <Border Grid.Row="3" Background="#0C111A" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="16" Padding="18,12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="{x:Bind loc:Loc.T('选中全部自动重建项')}" Click="OnSelectSafe" />
+                    <Button Grid.Column="1" Content="{x:Bind loc:Loc.T('清空选择')}" Click="OnClearSelection" />
+                    <CheckBox x:Name="PreviewCheck" Grid.Column="3" Content="{x:Bind loc:Loc.T('只预览,不删除')}" VerticalAlignment="Center"
+                              Checked="OnModeChanged" Unchecked="OnModeChanged" />
+                    <Button x:Name="CleanButton" Grid.Column="4" Click="OnClean" Padding="30,11" CornerRadius="12"
+                            FontWeight="SemiBold" FontSize="15" Foreground="#04110C">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#35F2B3" Offset="0" />
+                                <GradientStop Color="#19B9E6" Offset="1" />
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <TextBlock x:Name="CleanButtonText" Text="{x:Bind loc:Loc.T('开始清理')}" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ───────── 清理中 ───────── -->
+        <StackPanel x:Name="CleaningView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18"
+                    Visibility="Collapsed" Width="640">
+            <TextBlock Text="{x:Bind loc:Loc.T('正在清理')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}"
+                       HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Name="CleanNumber" FontFamily="Bahnschrift" FontSize="96" FontWeight="SemiLight" />
+                <TextBlock x:Name="CleanUnit" FontFamily="Bahnschrift" FontSize="30" VerticalAlignment="Bottom"
+                           Margin="0,0,0,18" Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+            <ProgressBar x:Name="CleanBar" Minimum="0" Maximum="1" Height="4" CornerRadius="2" Foreground="#35F2B3" />
+            <TextBlock x:Name="CleanPath" FontFamily="Cascadia Mono" FontSize="11" Foreground="{x:Bind local:Palette.Faint}"
+                       TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" MaxWidth="640" />
+            <Button Content="{x:Bind loc:Loc.T('停止')}" Click="OnCancel" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- ───────── 完成 ───────── -->
+        <StackPanel x:Name="DoneView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14"
+                    Visibility="Collapsed" Width="640">
+            <TextBlock x:Name="DoneLabel" Text="{x:Bind loc:Loc.T('已释放')}" FontSize="14" CharacterSpacing="140"
+                       Foreground="{x:Bind local:Palette.Dim}" HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock x:Name="DoneNumber" FontFamily="Bahnschrift" FontSize="120" FontWeight="SemiLight" />
+                <TextBlock x:Name="DoneUnit" FontFamily="Bahnschrift" FontSize="34" VerticalAlignment="Bottom"
+                           Margin="0,0,0,24" Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+            <TextBlock x:Name="DoneDetail" FontSize="15" Foreground="{x:Bind local:Palette.Text}"
+                       HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock x:Name="DoneNote" FontSize="13" Foreground="{x:Bind local:Palette.Dim}"
+                       HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+            <Button Content="{x:Bind loc:Loc.T('再扫描一次')}" Click="OnRescan" HorizontalAlignment="Center" Margin="0,12,0,0" Padding="26,10" />
+        </StackPanel>
+    </Grid>
+</UserControl>

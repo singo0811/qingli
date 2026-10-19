@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="TidyWin.App.MascotDock"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TidyWin.App"
+    HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+
+    <!-- 背景为空,所以除了鲸鱼娘自己,别处的点击都会穿透到下面的页面 -->
+    <Grid Height="230">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 对话气泡:抬在底部按钮栏上方,不接收点击,几秒后淡出 -->
+        <Grid x:Name="Bubble" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="4,0,0,124"
+              MaxWidth="340" Opacity="0" IsHitTestVisible="False">
+            <!-- 指向鲸鱼娘的小尖角,先画,让气泡盖住它的上半部分 -->
+            <Path x:Name="BubbleTail" Data="M0,0 L20,0 L0,16 Z" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                  Margin="-3,0,0,-14" Fill="#F0121B2B" Stroke="#8835F2B3" StrokeThickness="1.5" StrokeLineJoin="Round" />
+            <Border x:Name="BubbleCard" CornerRadius="16" Padding="16,11,16,12" BorderThickness="1.5"
+                    Background="#F0121B2B" BorderBrush="#8835F2B3">
+                <StackPanel Spacing="3">
+                    <TextBlock x:Name="BubbleTag" FontSize="11" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#35F2B3" />
+                    <TextBlock x:Name="BubbleText" FontSize="14" LineHeight="21" TextWrapping="Wrap" Foreground="#EAF0FA" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <local:MascotView x:Name="Whale" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14"
+                          Background="Transparent" PointerEntered="OnEnter" Tapped="OnTapped" />
+    </Grid>
+</UserControl>

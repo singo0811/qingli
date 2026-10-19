@@ -1,0 +1,208 @@
+<UserControl
+    x:Class="TidyWin.App.MascotView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Width="100" Height="100">
+
+    <!-- 鲸鱼娘:全部由矢量图形绘制,没有图片文件,所以不占磁盘。设计画布 120×120,Viewbox 缩放。
+         每套服装只借用对应工具公开的品牌色和通用造型,不复制任何 Logo 或吉祥物。 -->
+    <Viewbox x:Name="Art" Stretch="Uniform">
+        <Canvas Width="120" Height="120">
+
+            <!-- 地面的影子 -->
+            <Ellipse Canvas.Left="20" Canvas.Top="104" Width="80" Height="11" Fill="#40000000" />
+
+            <!-- 抱抱款:兜帽(画在身体后面)。Hugging Face 黄 + 橙色里衬 -->
+            <Ellipse x:Name="HoodBack" Canvas.Left="3" Canvas.Top="14" Width="114" Height="78" Fill="#FFD21E" Stroke="#FF9D0B" StrokeThickness="3" Visibility="Collapsed" />
+
+            <!-- 尾巴 -->
+            <Path x:Name="Tail" Fill="#5B93F5" Stroke="#3A66C8" StrokeThickness="1.2" StrokeLineJoin="Round"
+                  Data="M92,92 C106,90 112,80 108,68 C114,68 119,62 118,54 C110,54 103,58 101,66 C99,76 96,82 90,84 Z" />
+
+            <!-- 鳍 -->
+            <Ellipse Canvas.Left="2" Canvas.Top="66" Width="22" Height="12" Fill="#6BA6F8" Stroke="#3A66C8" StrokeThickness="1.2">
+                <Ellipse.RenderTransform><RotateTransform Angle="28" CenterX="11" CenterY="6" /></Ellipse.RenderTransform>
+            </Ellipse>
+            <Ellipse Canvas.Left="96" Canvas.Top="66" Width="22" Height="12" Fill="#6BA6F8" Stroke="#3A66C8" StrokeThickness="1.2">
+                <Ellipse.RenderTransform><RotateTransform Angle="-28" CenterX="11" CenterY="6" /></Ellipse.RenderTransform>
+            </Ellipse>
+
+            <!-- 身体 -->
+            <Ellipse Canvas.Left="10" Canvas.Top="26" Width="100" Height="78" StrokeThickness="1.4" Stroke="#3A66C8">
+                <Ellipse.Fill>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#A5EBFF" Offset="0" />
+                        <GradientStop Color="#63B8FF" Offset="0.55" />
+                        <GradientStop Color="#4F80F2" Offset="1" />
+                    </LinearGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+            <!-- 高光 -->
+            <Ellipse Canvas.Left="22" Canvas.Top="32" Width="26" Height="10" Fill="#66FFFFFF">
+                <Ellipse.RenderTransform><RotateTransform Angle="-20" CenterX="13" CenterY="5" /></Ellipse.RenderTransform>
+            </Ellipse>
+            <!-- 肚皮和鲸鱼的腹褶 -->
+            <Ellipse Canvas.Left="26" Canvas.Top="62" Width="68" Height="40" Fill="#F4FCFF" Opacity="0.96" />
+            <Path Data="M42,92 Q60,97 78,92 M46,98 Q60,102 74,98" Stroke="#BCD9F2" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+            <!-- 喷水(开心时) -->
+            <Canvas x:Name="Spout" Visibility="Collapsed">
+                <Path Data="M60,27 C59,19 53,14 48,16 M60,27 C61,19 67,14 72,16" Stroke="#D4F4FF" StrokeThickness="2.6"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Ellipse Canvas.Left="44" Canvas.Top="19" Width="4" Height="4" Fill="#D4F4FF" />
+                <Ellipse Canvas.Left="72" Canvas.Top="19" Width="4" Height="4" Fill="#D4F4FF" />
+                <Ellipse Canvas.Left="58" Canvas.Top="9" Width="4" Height="4" Fill="#D4F4FF" />
+            </Canvas>
+
+            <!-- 脸:腮红 -->
+            <Ellipse Canvas.Left="24" Canvas.Top="69" Width="14" Height="8" Fill="#99FF8FB1" />
+            <Ellipse Canvas.Left="82" Canvas.Top="69" Width="14" Height="8" Fill="#99FF8FB1" />
+
+            <!-- 睁眼 -->
+            <Canvas x:Name="EyesOpen">
+                <Canvas.RenderTransform><ScaleTransform x:Name="BlinkScale" CenterX="60" CenterY="60" ScaleY="1" /></Canvas.RenderTransform>
+                <Ellipse Canvas.Left="36" Canvas.Top="52" Width="12" Height="16" Fill="#14213D" />
+                <Ellipse Canvas.Left="72" Canvas.Top="52" Width="12" Height="16" Fill="#14213D" />
+                <Ellipse Canvas.Left="39" Canvas.Top="54" Width="5" Height="5" Fill="White" />
+                <Ellipse Canvas.Left="75" Canvas.Top="54" Width="5" Height="5" Fill="White" />
+                <Ellipse Canvas.Left="43" Canvas.Top="62" Width="2.5" Height="2.5" Fill="#CCFFFFFF" />
+                <Ellipse Canvas.Left="79" Canvas.Top="62" Width="2.5" Height="2.5" Fill="#CCFFFFFF" />
+                <!-- 睫毛 -->
+                <Path Data="M36,56 L31,52 M36,60 L30,59 M84,56 L89,52 M84,60 L90,59" Stroke="#14213D" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            </Canvas>
+
+            <!-- 笑眯眯的眼 -->
+            <Path x:Name="EyesHappy" Visibility="Collapsed" Data="M35,61 Q42,52 49,61 M71,61 Q78,52 85,61"
+                  Stroke="#14213D" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+            <!-- 担心的眉 -->
+            <Path x:Name="Brows" Visibility="Collapsed" Data="M34,49 L47,44 M86,49 L73,44"
+                  Stroke="#14213D" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+            <!-- 嘴 -->
+            <Path x:Name="MouthHappy" Data="M52,71 Q60,86 68,71 Z" Fill="#7A2540" Stroke="#7A2540" StrokeThickness="1.6" StrokeLineJoin="Round" />
+            <Path x:Name="MouthCalm" Visibility="Collapsed" Data="M53,73 Q60,79 67,73" Stroke="#7A2540" StrokeThickness="2.4"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            <Path x:Name="MouthWorried" Visibility="Collapsed" Data="M53,78 Q60,71 67,78" Stroke="#7A2540" StrokeThickness="2.4"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            <Ellipse x:Name="MouthBusy" Visibility="Collapsed" Canvas.Left="56" Canvas.Top="72" Width="8" Height="8" Fill="#7A2540" />
+            <Path x:Name="MouthSatisfied" Visibility="Collapsed" Data="M50,71 Q60,84 70,71" Stroke="#7A2540" StrokeThickness="2.8"
+                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+            <!-- 心情小装饰 -->
+            <Path x:Name="Sweat" Visibility="Collapsed" Data="M98,34 Q104,44 98,50 Q92,44 98,34 Z" Fill="#B8EBFF" Stroke="#6BB7E8" StrokeThickness="1" />
+            <Canvas x:Name="Dots" Visibility="Collapsed">
+                <Ellipse Canvas.Left="48" Canvas.Top="8" Width="6" Height="6" Fill="#E6FFFFFF" />
+                <Ellipse Canvas.Left="57" Canvas.Top="6" Width="6" Height="6" Fill="#E6FFFFFF" />
+                <Ellipse Canvas.Left="66" Canvas.Top="8" Width="6" Height="6" Fill="#E6FFFFFF" />
+            </Canvas>
+            <Canvas x:Name="Sparkles" Visibility="Collapsed">
+                <Path Canvas.Left="100" Canvas.Top="22" Fill="#FFF2A8" Data="M6,0 L7.8,4.2 L12,6 L7.8,7.8 L6,12 L4.2,7.8 L0,6 L4.2,4.2 Z" />
+                <Path Canvas.Left="8" Canvas.Top="30" Fill="#FFF2A8" Data="M5,0 L6.5,3.5 L10,5 L6.5,6.5 L5,10 L3.5,6.5 L0,5 L3.5,3.5 Z" />
+            </Canvas>
+
+            <!-- ───────── 各款服装 ───────── -->
+
+            <!-- 经典款:蝴蝶结 -->
+            <Canvas x:Name="OutfitClassic">
+                <Path x:Name="BowWings" Data="M88,32 L76,23 Q72,32 76,41 Z M88,32 L100,23 Q104,32 100,41 Z" Fill="#FF8FB1" Stroke="#C9507A" StrokeThickness="1" StrokeLineJoin="Round" />
+                <Ellipse x:Name="BowKnot" Canvas.Left="84" Canvas.Top="28" Width="8" Height="8" Fill="#FF8FB1" Stroke="#C9507A" StrokeThickness="1" />
+            </Canvas>
+
+            <!-- 羊驼款 (Ollama):黑白配色、粗黑描边、蓬松的白色羊驼帽和竖起的尖耳朵 -->
+            <Canvas x:Name="OutfitLlama" Visibility="Collapsed">
+                <Ellipse Canvas.Left="31" Canvas.Top="19" Width="20" Height="17" Fill="White" Stroke="#111111" StrokeThickness="3" />
+                <Ellipse Canvas.Left="69" Canvas.Top="19" Width="20" Height="17" Fill="White" Stroke="#111111" StrokeThickness="3" />
+                <Ellipse Canvas.Left="46" Canvas.Top="12" Width="28" Height="22" Fill="White" Stroke="#111111" StrokeThickness="3" />
+                <!-- 耳朵画在毛团上面,这样耳尖才看得清 -->
+                <Path Data="M31,26 C24,13 27,0 35,0 C44,1 48,14 47,26 Z" Fill="White" Stroke="#111111" StrokeThickness="3" StrokeLineJoin="Round" />
+                <Path Data="M89,26 C96,13 93,0 85,0 C76,1 72,14 73,26 Z" Fill="White" Stroke="#111111" StrokeThickness="3" StrokeLineJoin="Round" />
+                <Path Data="M36,22 C33,14 34,8 36,6 C39,8 41,15 41,22 Z" Fill="#33000000" />
+                <Path Data="M84,22 C87,14 86,8 84,6 C81,8 79,15 79,22 Z" Fill="#33000000" />
+                <Path Data="M26,45 C22,30 34,22 60,22 C86,22 98,30 94,45 C84,41 36,41 26,45 Z" Fill="White" Stroke="#111111" StrokeThickness="3" StrokeLineJoin="Round" />
+                <Ellipse Canvas.Left="54" Canvas.Top="40" Width="12" Height="4" Fill="White" />
+            </Canvas>
+
+            <!-- 触角款 (LM Studio):紫色小机器人触角和紫色领口 -->
+            <Canvas x:Name="OutfitStudio" Visibility="Collapsed">
+                <Path Data="M42,33 L35,11 Q34,6 39,6 Q44,6 46,11 L51,32 Z" Fill="#9857C5" Stroke="#7A3FBF" StrokeThickness="1" StrokeLineJoin="Round" />
+                <Path Data="M42,33 L40,24 L48,24 L51,32 Z" Fill="#7A3FBF" />
+                <Path Data="M78,33 L85,11 Q86,6 81,6 Q76,6 74,11 L69,32 Z" Fill="#9857C5" Stroke="#7A3FBF" StrokeThickness="1" StrokeLineJoin="Round" />
+                <Path Data="M78,33 L80,24 L72,24 L69,32 Z" Fill="#7A3FBF" />
+                <Path Data="M28,86 Q60,101 92,86" Stroke="#6760CF" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="M34,85 Q60,97 86,85" Stroke="#A59DF2" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            </Canvas>
+
+            <!-- 狐狸款 (ComfyUI):耳廓狐的大耳朵,Comfy 荧光黄和深紫,肚子上的节点连线 -->
+            <Canvas x:Name="OutfitFox" Visibility="Collapsed">
+                <Path Data="M28,36 C22,22 25,9 30,-2 C43,4 53,18 55,34 Z" Fill="#F2FF59" Stroke="#211927" StrokeThickness="2" StrokeLineJoin="Round" />
+                <Path Data="M33,32 C30,22 31,12 34,4 C41,10 47,19 49,31 Z" Fill="#49378B" />
+                <Path Data="M92,36 C98,22 95,9 90,-2 C77,4 67,18 65,34 Z" Fill="#F2FF59" Stroke="#211927" StrokeThickness="2" StrokeLineJoin="Round" />
+                <Path Data="M87,32 C90,22 89,12 86,4 C79,10 73,19 71,31 Z" Fill="#49378B" />
+                <Path Data="M27,42 Q60,28 93,42" Stroke="#F2FF59" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Rectangle Canvas.Left="38" Canvas.Top="83" Width="44" Height="17" RadiusX="8" RadiusY="8" Fill="#211927" Stroke="#F2FF59" StrokeThickness="1.4" />
+                <Line X1="49" Y1="91.5" X2="71" Y2="91.5" Stroke="#F2FF59" StrokeThickness="2" />
+                <Rectangle Canvas.Left="44" Canvas.Top="87" Width="9" Height="9" RadiusX="2.5" RadiusY="2.5" Fill="#F2FF59" />
+                <Rectangle Canvas.Left="67" Canvas.Top="87" Width="9" Height="9" RadiusX="2.5" RadiusY="2.5" Fill="#49378B" Stroke="#F2FF59" StrokeThickness="1.4" />
+            </Canvas>
+
+            <!-- 安全帽款 (Cursor):橙色安全帽(Cursor 官方说橙色取自电动工具),帽上一个小立方体,肚子上一个光标箭头 -->
+            <Canvas x:Name="OutfitHardhat" Visibility="Collapsed">
+                <Path Data="M27,42 C26,8 94,8 93,42 Z" Fill="#F54E00" Stroke="#B83A00" StrokeThickness="1.6" StrokeLineJoin="Round" />
+                <Path Data="M33,30 C38,18 50,13 60,13" Stroke="#FF9B66" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Rectangle Canvas.Left="55" Canvas.Top="11" Width="10" Height="30" Fill="#D04200" />
+                <Rectangle Canvas.Left="19" Canvas.Top="39" Width="82" Height="8" RadiusX="4" RadiusY="4" Fill="#F54E00" Stroke="#B83A00" StrokeThickness="1.6" />
+                <!-- 立方体徽章 -->
+                <Path Data="M60,16 L68,20.5 L60,25 L52,20.5 Z" Fill="#F7F7F4" />
+                <Path Data="M52,20.5 L60,25 L60,34 L52,29.5 Z" Fill="#26251E" />
+                <Path Data="M68,20.5 L60,25 L60,34 L68,29.5 Z" Fill="#8F2F00" />
+                <!-- 光标箭头 -->
+                <Rectangle Canvas.Left="38" Canvas.Top="83" Width="44" Height="17" RadiusX="8" RadiusY="8" Fill="#26251E" />
+                <Path Canvas.Left="53" Canvas.Top="85" Data="M0,0 L0,12 L3.4,9 L5.8,14 L8,13 L5.7,8.2 L10,8 Z" Fill="#F54E00" Stroke="#F7F7F4" StrokeThickness="1" StrokeLineJoin="Round" />
+                <Rectangle Canvas.Left="68" Canvas.Top="91" Width="8" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#F7F7F4" Opacity="0.8" />
+            </Canvas>
+
+            <!-- 抱抱款 (Hugging Face):黄色连帽衫、领口,和脸颊旁抱抱的两只小手(🤗) -->
+            <Canvas x:Name="OutfitHugger" Visibility="Collapsed">
+                <Path Data="M28,86 Q60,102 92,86" Stroke="#FFD21E" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="M28,86 Q60,102 92,86" Stroke="#FF9D0B" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.7" />
+                <Path Data="M50,95 L48,106 M70,95 L72,106" Stroke="#FFF3C0" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Ellipse Canvas.Left="45" Canvas.Top="104" Width="6" Height="6" Fill="#FFF3C0" />
+                <Ellipse Canvas.Left="69" Canvas.Top="104" Width="6" Height="6" Fill="#FFF3C0" />
+                <!-- 左手 -->
+                <Ellipse Canvas.Left="14" Canvas.Top="68" Width="15" Height="14" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.3" />
+                <Ellipse Canvas.Left="12" Canvas.Top="64" Width="6" Height="7" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+                <Ellipse Canvas.Left="17" Canvas.Top="61" Width="6" Height="8" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+                <Ellipse Canvas.Left="23" Canvas.Top="62" Width="6" Height="8" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+                <!-- 右手 -->
+                <Ellipse Canvas.Left="91" Canvas.Top="68" Width="15" Height="14" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.3" />
+                <Ellipse Canvas.Left="102" Canvas.Top="64" Width="6" Height="7" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+                <Ellipse Canvas.Left="97" Canvas.Top="61" Width="6" Height="8" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+                <Ellipse Canvas.Left="91" Canvas.Top="62" Width="6" Height="8" Fill="#FFD21E" Stroke="#E89A00" StrokeThickness="1.1" />
+            </Canvas>
+
+            <!-- 星芒款 (Claude):赤陶橙 #D97757 的放射星芒发夹,和赤陶色的领口 -->
+            <Canvas x:Name="OutfitClaude" Visibility="Collapsed">
+                <Path Data="M90,12 L90,44 M74,28 L106,28 M79,17 L101,39 M101,17 L79,39 M84,13 L96,43 M106,34 L74,22"
+                      Stroke="#D97757" StrokeThickness="4.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Ellipse Canvas.Left="85" Canvas.Top="23" Width="10" Height="10" Fill="#F0A485" Stroke="#B25A3A" StrokeThickness="1" />
+                <Path Data="M28,86 Q60,101 92,86" Stroke="#D97757" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="M34,85 Q60,97 86,85" Stroke="#F7D9C9" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            </Canvas>
+
+            <!-- 花结款 (ChatGPT):黑白的六瓣花结发饰和黑色领口 -->
+            <Canvas x:Name="OutfitChatGpt" Visibility="Collapsed">
+                <Ellipse Canvas.Left="83" Canvas.Top="8" Width="14" Height="30" Fill="White" Stroke="#111111" StrokeThickness="2.2" />
+                <Ellipse Canvas.Left="83" Canvas.Top="8" Width="14" Height="30" Fill="White" Stroke="#111111" StrokeThickness="2.2">
+                    <Ellipse.RenderTransform><RotateTransform Angle="60" CenterX="7" CenterY="15" /></Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Canvas.Left="83" Canvas.Top="8" Width="14" Height="30" Fill="White" Stroke="#111111" StrokeThickness="2.2">
+                    <Ellipse.RenderTransform><RotateTransform Angle="120" CenterX="7" CenterY="15" /></Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Canvas.Left="86" Canvas.Top="19" Width="8" Height="8" Fill="#111111" />
+                <Path Data="M28,86 Q60,101 92,86" Stroke="#1A1A1A" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="M34,85 Q60,97 86,85" Stroke="#F2F2F2" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+            </Canvas>
+        </Canvas>
+    </Viewbox>
+</UserControl>

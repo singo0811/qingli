@@ -1,0 +1,101 @@
+﻿<UserControl
+    x:Class="TidyWin.App.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App">
+
+    <Grid Padding="44,30,44,28" RowSpacing="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="2">
+            <TextBlock Text="{x:Bind loc:Loc.T('总览')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <TextBlock x:Name="HeroNumber" Text="–" FontFamily="Bahnschrift" FontSize="96" FontWeight="SemiLight" LineHeight="100" />
+                <TextBlock x:Name="HeroUnit" FontSize="22" VerticalAlignment="Bottom" Margin="0,0,0,18"
+                           Foreground="{x:Bind local:Palette.Dim}" />
+            </StackPanel>
+            <TextBlock x:Name="HeroSub" FontSize="14" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="16,12">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Bind loc:Loc.T('系统盘剩余')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                    <TextBlock x:Name="DiskText" FontFamily="Bahnschrift" FontSize="24" Foreground="{x:Bind local:Palette.Text}" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="16,12">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Bind loc:Loc.T('内存已用')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                    <TextBlock x:Name="MemText" FontFamily="Bahnschrift" FontSize="24" Foreground="{x:Bind local:Palette.Text}" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="16,12">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Bind loc:Loc.T('开机自启')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                    <TextBlock x:Name="StartText" FontFamily="Bahnschrift" FontSize="24" Foreground="{x:Bind local:Palette.Text}" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="3" Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="16,12">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Bind loc:Loc.T('已开机')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                    <TextBlock x:Name="UpText" FontFamily="Bahnschrift" FontSize="24" Foreground="{x:Bind local:Palette.Text}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+            <StackPanel Spacing="10">
+                <ItemsControl ItemsSource="{x:Bind Rows}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="10" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:InsightRow">
+                            <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="14">
+                                <Grid MinHeight="84">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="5" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="{x:Bind local:Palette.LevelBrush(Level)}" CornerRadius="14,0,0,14" />
+                                    <StackPanel Grid.Column="1" Padding="20,12,12,12" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind LevelText}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{x:Bind local:Palette.LevelBrush(Level)}" />
+                                        <TextBlock Text="{x:Bind Title}" FontSize="17" FontWeight="SemiBold"
+                                                   Foreground="{x:Bind local:Palette.Text}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind Detail}" FontSize="13" Foreground="{x:Bind local:Palette.Dim}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Padding="12,12,20,12" Spacing="6" VerticalAlignment="Center"
+                                                HorizontalAlignment="Right" MinWidth="130">
+                                        <Button Content="{x:Bind ActionLabel}" Click="OnGo" Padding="16,7" HorizontalAlignment="Right"
+                                                Visibility="{x:Bind local:Palette.Vis(CanGo)}" />
+                                        <Button Content="{x:Bind loc:Loc.T('今天先不提醒')}" Click="OnSnooze" Padding="10,4" FontSize="12" HorizontalAlignment="Right"
+                                                Background="Transparent" BorderThickness="0"
+                                                Visibility="{x:Bind local:Palette.Vis(CanSnooze)}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="Footnote" FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" Margin="0,6,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

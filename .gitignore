@@ -1,0 +1,12 @@
+bin/
+obj/
+publish/
+publish-*/
+dist/
+.vs/
+*.user
+*.suo
+TestResults/
+*.log
+*.tmp
+/MainWindow.xaml

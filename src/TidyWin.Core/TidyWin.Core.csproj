@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- English text, looked up by the Chinese sentence. Only read when English is the chosen language. -->
+    <EmbeddedResource Include="Localization\en.json" LogicalName="TidyWin.Core.Localization.en.json" />
+  </ItemGroup>
+
+</Project>

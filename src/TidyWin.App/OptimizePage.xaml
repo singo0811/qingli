@@ -1,0 +1,67 @@
+﻿<UserControl
+    x:Class="TidyWin.App.OptimizePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    xmlns:vm="using:TidyWin.ViewModels">
+
+    <Grid Padding="44,30,44,28" RowSpacing="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="2">
+            <TextBlock Text="{x:Bind loc:Loc.T('小修小补')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+            <TextBlock Text="{x:Bind loc:Loc.T('哪里卡了修哪里')}" FontSize="32" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" />
+            <TextBlock Text="{x:Bind loc:Loc.T('每一项只解决一个具体的小毛病,不改你的任何设置;只有「清空回收站」会让里面的文件消失。点之前会告诉你它会发生什么。')}" FontSize="14"
+                       Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border x:Name="MessageBar" Grid.Row="1" Background="#10222B" BorderBrush="#1E4A44" BorderThickness="1"
+                CornerRadius="12" Padding="16,10" Visibility="Collapsed">
+            <TextBlock x:Name="MessageText" FontSize="13" TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}" />
+        </Border>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+            <ItemsControl ItemsSource="{x:Bind ViewModel.Items}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="10" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OptimizeItemViewModel">
+                        <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="14" Padding="20,14">
+                            <Grid ColumnSpacing="18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{x:Bind Task.Title}" FontSize="17" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" />
+                                    <TextBlock Text="{x:Bind Hint, Mode=OneWay}" FontSize="13" Foreground="{x:Bind local:Palette.CyanBrush}"
+                                               Visibility="{x:Bind local:Palette.VisText(Hint), Mode=OneWay}" />
+                                    <TextBlock FontSize="13" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap"
+                                               Text="{x:Bind local:OptimizePage.WhenText(Task.When)}" />
+                                    <TextBlock Text="{x:Bind Task.Effect}" FontSize="13" Foreground="{x:Bind local:Palette.Text}" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="12" Foreground="#FFB84D" TextWrapping="Wrap"
+                                               Text="{x:Bind local:OptimizePage.WarnText(Task.Warning)}"
+                                               Visibility="{x:Bind local:Palette.VisText(Task.Warning)}" />
+                                    <TextBlock FontSize="13" TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Dim}"
+                                               Text="{x:Bind Result, Mode=OneWay}"
+                                               Visibility="{x:Bind local:Palette.VisText(Result), Mode=OneWay}" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="{x:Bind local:OptimizePage.ActionText(State), Mode=OneWay}"
+                                        IsEnabled="{x:Bind local:OptimizePage.CanRun(State), Mode=OneWay}"
+                                        Click="OnRun" Padding="20,9" VerticalAlignment="Center" MinWidth="96" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,209 @@
+﻿<UserControl
+    x:Class="TidyWin.App.SoftwarePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    xmlns:vm="using:TidyWin.ViewModels">
+
+    <Grid Padding="44,30,44,28">
+
+        <!-- ───────── 列表(已安装 / 可更新) ───────── -->
+        <Grid x:Name="ListPanel" RowSpacing="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock Text="{x:Bind loc:Loc.T('软件管理')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+                <TextBlock x:Name="Heading" Text="{x:Bind loc:Loc.T('装了哪些软件')}" FontSize="32" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" />
+                <TextBlock x:Name="SubHeading" FontSize="14" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="InstalledTabButton" Content="{x:Bind loc:Loc.T('已安装')}" Click="OnShowInstalled" Padding="18,7" />
+                <Button x:Name="UpdatesTabButton" Content="{x:Bind loc:Loc.T('可更新')}" Click="OnShowUpdates" Padding="18,7" />
+            </StackPanel>
+
+            <Border x:Name="MessageBar" Grid.Row="2" Background="#10222B" BorderBrush="#1E4A44" BorderThickness="1"
+                    CornerRadius="12" Padding="16,10" Visibility="Collapsed">
+                <TextBlock x:Name="MessageText" FontSize="13" TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}" />
+            </Border>
+
+            <!-- 已安装 -->
+            <Grid x:Name="InstalledPanel" Grid.Row="3" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="SearchBox" PlaceholderText="{x:Bind loc:Loc.T('按名称或发布者查找')}"
+                             Text="{x:Bind ViewModel.Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind loc:Loc.T('排序')}" VerticalAlignment="Center" Foreground="{x:Bind local:Palette.Dim}" FontSize="13" />
+                    <ComboBox Grid.Column="2" x:Name="SortBox" SelectedIndex="0" SelectionChanged="OnSortChanged" MinWidth="130">
+                        <ComboBoxItem Content="{x:Bind loc:Loc.T('占用空间')}" />
+                        <ComboBoxItem Content="{x:Bind loc:Loc.T('名称')}" />
+                        <ComboBoxItem Content="{x:Bind loc:Loc.T('安装日期')}" />
+                    </ComboBox>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+                    <StackPanel Spacing="8">
+                        <ProgressRing x:Name="LoadingRing" IsActive="True" Width="28" Height="28" HorizontalAlignment="Left" Visibility="Collapsed" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Apps}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AppItemViewModel">
+                                    <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="18,10">
+                                        <Grid ColumnSpacing="14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="3" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextTrimming="CharacterEllipsis"
+                                                           Text="{x:Bind local:SoftwarePage.AppSub(Publisher, Version, DateText)}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{x:Bind SizeText}" FontFamily="Bahnschrift" FontSize="18" VerticalAlignment="Center"
+                                                       MinWidth="84" TextAlignment="Right" Foreground="{x:Bind local:Palette.Text}" />
+                                            <Button Grid.Column="2" Content="{x:Bind loc:Loc.T('卸载')}" Click="OnUninstall" Padding="14,5" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- 可更新 -->
+            <ScrollViewer x:Name="UpdatesPanel" Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0"
+                          Visibility="Collapsed">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button x:Name="CheckUpdatesButton" Content="{x:Bind loc:Loc.T('检查更新')}" Click="OnCheckUpdates" Padding="18,7" />
+                        <ProgressRing x:Name="UpdatesRing" IsActive="True" Width="22" Height="22" Visibility="Collapsed" />
+                        <TextBlock x:Name="UpdatesNote" FontSize="13" VerticalAlignment="Center" Foreground="{x:Bind local:Palette.Dim}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.Upgrades}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UpgradeItemViewModel">
+                                <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="18,10">
+                                    <Grid ColumnSpacing="14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="3" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{x:Bind VersionText}" FontFamily="Cascadia Mono" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="{x:Bind ActionText, Mode=OneWay}" IsEnabled="{x:Bind CanUpgrade, Mode=OneWay}"
+                                                Click="OnUpgrade" Padding="16,5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ───────── 卸载中 ───────── -->
+        <StackPanel x:Name="BusyView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18"
+                    Visibility="Collapsed" Width="600">
+            <ProgressRing IsActive="True" Width="44" Height="44" />
+            <TextBlock x:Name="BusyTitle" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" TextAlignment="Center"
+                       TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}" />
+            <TextBlock x:Name="BusyDetail" FontSize="13" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                       Foreground="{x:Bind local:Palette.Dim}" />
+        </StackPanel>
+
+        <!-- ───────── 残留 ───────── -->
+        <Grid x:Name="ResidualView" RowSpacing="14" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock Text="{x:Bind loc:Loc.T('卸载完成')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+                <TextBlock x:Name="ResidualTitle" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}" />
+            </StackPanel>
+            <Border Grid.Row="1" Background="#221A10" BorderBrush="#5A431E" BorderThickness="1" CornerRadius="12" Padding="16,10">
+                <TextBlock FontSize="13" TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}"
+                           Text="{x:Bind loc:Loc.T('下面是和软件同名的文件夹,可能放着它的设置、存档或你自己的文件。我一个都没有替你勾。勾上再清理的是永久删除(不进回收站),不确定就先点「在文件夹中显示」看看里面是什么。')}" />
+            </Border>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Residuals}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ResidualItemViewModel">
+                            <Border Background="#0F1520" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="12" Padding="18,10">
+                                <Grid ColumnSpacing="14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}" Click="OnTick" MinWidth="0" VerticalAlignment="Center"
+                                              AutomationProperties.Name="{x:Bind loc:Loc.T('清理这一项')}" />
+                                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Path}" FontFamily="Cascadia Mono" FontSize="12" Foreground="{x:Bind local:Palette.Text}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Why}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{x:Bind SizeText}" FontFamily="Bahnschrift" FontSize="18" VerticalAlignment="Center"
+                                               MinWidth="84" TextAlignment="Right" Foreground="{x:Bind local:Palette.Text}" />
+                                    <Button Grid.Column="3" Content="{x:Bind loc:Loc.T('在文件夹中显示')}" Click="OnRevealResidual" Padding="12,5" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10">
+                <Button x:Name="CleanButton" Content="{x:Bind loc:Loc.T('永久删除所勾选的')}" Click="OnCleanResiduals" Padding="18,8" IsEnabled="False" />
+                <Button Content="{x:Bind loc:Loc.T('都不动')}" Click="OnSkipResiduals" Padding="18,8" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ───────── 完成 ───────── -->
+        <StackPanel x:Name="DoneView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16"
+                    Visibility="Collapsed" Width="600">
+            <FontIcon Glyph="&#xE73E;" FontSize="40" Foreground="{x:Bind local:Palette.CyanBrush}" HorizontalAlignment="Center" />
+            <TextBlock x:Name="DoneText" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" TextAlignment="Center"
+                       TextWrapping="Wrap" Foreground="{x:Bind local:Palette.Text}" />
+            <TextBlock x:Name="DoneDetail" FontSize="13" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                       Foreground="{x:Bind local:Palette.Dim}" />
+            <Button Content="{x:Bind loc:Loc.T('回到软件列表')}" Click="OnBack" HorizontalAlignment="Center" Padding="22,8" />
+        </StackPanel>
+    </Grid>
+</UserControl>

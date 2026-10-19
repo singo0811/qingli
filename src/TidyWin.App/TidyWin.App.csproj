@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>TidyWin.App</RootNamespace>
+    <AssemblyName>TidyWin</AssemblyName>
+    <Version>1.0.0</Version>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- Size and memory. This is a small tool that sits next to the user's work, so it must stay light. -->
+  <PropertyGroup>
+    <!-- Only the languages the app actually ships; other satellite folders are dead weight. -->
+    <SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
+    <!-- Skips loading the ICU library (about 30 MB of address space). All our text handling is ordinal or invariant. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Background GC thread and profile-guided tiering both cost memory and threads for no visible gain here. -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>false</TieredPGO>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <!-- Partial: only framework libraries marked as trimmable are cut. Our code and the WinUI projections stay whole. -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <TrimmerSingleWarn>true</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <!--
+    C#/WinRT finds the method tables of generic interfaces (the ones behind ObservableCollection<T> as ItemsSource)
+    through reflection. If these assemblies are trimmed, those are removed and every page with a list crashes
+    on load. They are kept whole; the saving comes from trimming the .NET libraries.
+  -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <TrimmerRootAssembly Include="WinRT.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ask the GC to compact more eagerly; trades a little CPU for a smaller resident set. -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The Microsoft.WindowsAppSDK meta-package also drags in AI, ML (ONNX Runtime + DirectML), Search and Widgets.
+      We use none of them, so the parts we do need are referenced one by one.
+    -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.12" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.DWrite" Version="2.1.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <!--
+    For an unpackaged WinUI app, `dotnet publish` does not copy the compiled XAML (*.xbf) or the resource index (*.pri).
+    Without them the window cannot be created and the app crashes at start-up, so they are added to the publish list here.
+  -->
+  <Target Name="CarryXamlAndResourcesToPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <!-- Only our own resource index: the SDK's own .pri files are already part of the publish list. -->
+      <_XamlOutput Include="$(OutDir)*.xbf;$(OutDir)$(AssemblyName).pri" />
+      <ResolvedFileToPublish Include="@(_XamlOutput)">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TidyWin.Core\TidyWin.Core.csproj" />
+    <ProjectReference Include="..\TidyWin.Platform\TidyWin.Platform.csproj" />
+    <ProjectReference Include="..\TidyWin.ViewModels\TidyWin.ViewModels.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,223 @@
+﻿<UserControl
+    x:Class="TidyWin.App.SecurityPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:TidyWin.Core.Localization"
+    xmlns:local="using:TidyWin.App"
+    xmlns:vm="using:TidyWin.ViewModels">
+
+    <UserControl.Resources>
+        <!-- 需要关注的条目:带颜色的大卡片 -->
+        <DataTemplate x:Key="FindingCard" x:DataType="vm:FindingViewModel">
+            <Border Background="{x:Bind local:Palette.CardWash(Severity)}" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="16"
+                    PointerEntered="OnCardEnter" PointerExited="OnCardExit">
+                <Grid ColumnSpacing="16" Padding="22,16,24,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="4" CornerRadius="2" Background="{x:Bind local:Palette.SevBrush(Severity)}" VerticalAlignment="Stretch" />
+                    <StackPanel Grid.Column="1" Spacing="6">
+                        <TextBlock Text="{x:Bind Title}" FontSize="17" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind Detail}" FontSize="13" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" LineHeight="20" />
+                        <Border Visibility="{x:Bind local:Palette.Vis(HasAdvice)}" Margin="0,6,0,0" Padding="14,10" CornerRadius="10"
+                                Background="#0B101A" BorderBrush="#1B2536" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE82F;" FontSize="14" Foreground="{x:Bind local:Palette.SevBrush(Severity)}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                                <TextBlock Text="{x:Bind Advice}" FontSize="13" Foreground="{x:Bind local:Palette.Text}" TextWrapping="Wrap" LineHeight="20" MaxWidth="760" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- 一切正常的条目:压成一行 -->
+        <DataTemplate x:Key="OkRow" x:DataType="vm:FindingViewModel">
+            <Border Background="#0D131E" BorderBrush="#18212F" BorderThickness="1" CornerRadius="12" Padding="14,11"
+                    ToolTipService.ToolTip="{x:Bind Detail}">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="#35F2B3" />
+                    <TextBlock Text="{x:Bind Title}" FontSize="13" Foreground="{x:Bind local:Palette.Text}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- AI 联网检查:每个网站的两次结果 -->
+        <DataTemplate x:Key="NetLine" x:DataType="vm:NetRow">
+            <Border Background="#0D131E" BorderBrush="#18212F" BorderThickness="1" CornerRadius="12" Padding="16,10">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{x:Bind Name}" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" />
+                        <TextBlock Text="{x:Bind Used}" FontSize="11" Foreground="{x:Bind local:Palette.Faint}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{x:Bind Direct}" FontSize="13" VerticalAlignment="Center"
+                               Foreground="{x:Bind local:Palette.OutcomeBrush(DirectLevel)}" />
+                    <TextBlock Grid.Column="2" Text="{x:Bind Proxy}" FontSize="13" VerticalAlignment="Center"
+                               Foreground="{x:Bind local:Palette.OutcomeBrush(ProxyLevel)}" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- 对外监听的程序:标签 -->
+        <DataTemplate x:Key="Chip" x:DataType="vm:ExposedProgram">
+            <Border Background="#0F1623" BorderBrush="#1D2A3D" BorderThickness="1" CornerRadius="12" Padding="14,10">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Bind Name}" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Text}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock FontSize="12" Foreground="{x:Bind local:Palette.Dim}">
+                        <Run Text="{x:Bind loc:Loc.T('端口 ')}" /><Run Text="{x:Bind Port}" /><Run Text=" · " /><Run Text="{x:Bind Where}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Padding="44,30,44,28">
+
+        <StackPanel x:Name="ScanView" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+            <TextBlock x:Name="ScanTitle" Text="{x:Bind loc:Loc.T('正在检查系统防护和网络暴露')}" FontSize="24" FontWeight="SemiBold"
+                       Foreground="{x:Bind local:Palette.Text}" HorizontalAlignment="Center" TextWrapping="Wrap" />
+            <ProgressBar IsIndeterminate="True" Width="440" Foreground="#35F2B3" />
+        </StackPanel>
+
+        <Grid x:Name="ReadyView" RowSpacing="20" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 顶部:结论、分段状态条、发光的盾牌 -->
+            <Grid x:Name="Hero" Grid.Row="0" ColumnSpacing="30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="10">
+                    <TextBlock Text="{x:Bind loc:Loc.T('安全体检')}" FontSize="14" CharacterSpacing="140" Foreground="{x:Bind local:Palette.Dim}" />
+                    <TextBlock x:Name="Headline" FontSize="46" FontWeight="SemiBold" />
+                    <Grid x:Name="Strata" Height="8" MaxWidth="640" HorizontalAlignment="Stretch" Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="RiskCol" Width="0*" />
+                            <ColumnDefinition x:Name="WarnCol" Width="0*" />
+                            <ColumnDefinition x:Name="InfoCol" Width="0*" />
+                            <ColumnDefinition x:Name="OkCol" Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="RiskBar" Grid.Column="0" Background="#FF7A45" CornerRadius="4" Margin="0,0,3,0" />
+                        <Border x:Name="WarnBar" Grid.Column="1" Background="#FFB84D" CornerRadius="4" Margin="0,0,3,0" />
+                        <Border x:Name="InfoBar" Grid.Column="2" Background="#19B9E6" CornerRadius="4" Margin="0,0,3,0" />
+                        <Border x:Name="OkBar" Grid.Column="3" Background="#35F2B3" CornerRadius="4" />
+                    </Grid>
+                    <StackPanel x:Name="Legend" Orientation="Horizontal" Spacing="22" />
+                    <TextBlock Text="{x:Bind loc:Loc.T('这不是杀毒软件。它不扫描文件,只检查 Windows 的防护是否在正常工作,以及有没有对外开放的程序;病毒查杀交给 Windows Defender。')}"
+                               FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" MaxWidth="640" />
+                </StackPanel>
+
+                <Grid Grid.Column="1" Width="150" Height="150" VerticalAlignment="Top" IsHitTestVisible="False">
+                    <Ellipse x:Name="Halo" />
+                    <FontIcon x:Name="ShieldIcon" Glyph="&#xE83D;" FontSize="64" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+            </Grid>
+
+            <ScrollViewer x:Name="ListScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-12,0" Padding="0,0,12,0">
+                <StackPanel Spacing="26">
+
+                    <StackPanel x:Name="NetBlock" Spacing="10">
+                        <TextBlock Text="{x:Bind loc:Loc.T('AI 联网检查')}" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.CyanBrush}" />
+                        <Border Background="#0F1623" BorderBrush="#1D2A3D" BorderThickness="1" CornerRadius="16" Padding="22,16">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontSize="13" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" LineHeight="20"
+                                           Text="{x:Bind loc:Loc.T('AI 工具最常见的毛病是「浏览器能上,Claude Code、Codex 这类命令行和客户端却上不去」。这里按两家官方文档列出的域名(Claude 的接口、登录、更新;OpenAI 的登录、ChatGPT 后端、接口),加上 Gemini、Cursor 和常用下载站,各发一次不带账号和密钥的普通请求,分别测「直连」和「按这台电脑的代理设置连」。同时请这些网站自己报出「它看到你从哪个国家、哪个地址来」(最准,按 IPv4 / IPv6 分开看),再向 ipinfo.io(不行换 ipapi.co、ip.sb)查你的出口地址和网络类型。它们只会看到本来就对所有网站可见的出口 IP。')}" />
+                                <StackPanel Orientation="Horizontal" Spacing="14">
+                                    <Button x:Name="NetButton" Content="{x:Bind loc:Loc.T('开始检查')}" Click="OnCheckNet" Padding="20,8" />
+                                    <ProgressBar x:Name="NetProgress" Width="200" Maximum="9" Foreground="#19B9E6" Visibility="Collapsed" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="NetSetup" FontSize="12" Foreground="{x:Bind local:Palette.Faint}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="560" />
+                                </StackPanel>
+                                <StackPanel x:Name="NetResults" Spacing="8" Visibility="Collapsed">
+                                    <TextBlock x:Name="NetExit" FontFamily="Cascadia Mono" FontSize="12" Foreground="{x:Bind local:Palette.Dim}"
+                                               TextWrapping="Wrap" Margin="0,0,0,2" />
+                                    <TextBlock x:Name="NetTrace" FontFamily="Cascadia Mono" FontSize="12" Foreground="{x:Bind local:Palette.Dim}"
+                                               TextWrapping="Wrap" Margin="0,0,0,6" IsTextSelectionEnabled="True" />
+                                    <Grid ColumnSpacing="16" Padding="16,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="170" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="1" Text="{x:Bind loc:Loc.T('直连')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind loc:Loc.T('按电脑的代理设置')}" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" />
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{x:Bind NetVm.Rows}" ItemTemplate="{StaticResource NetLine}">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                    <ItemsControl ItemsSource="{x:Bind NetVm.Findings}" ItemTemplate="{StaticResource FindingCard}" Margin="0,8,0,0">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="RiskSection" Spacing="10">
+                        <TextBlock x:Name="RiskHeader" FontSize="14" FontWeight="SemiBold" Foreground="#FF7A45" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Risks}" ItemTemplate="{StaticResource FindingCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="WarnSection" Spacing="10">
+                        <TextBlock x:Name="WarnHeader" FontSize="14" FontWeight="SemiBold" Foreground="#FFB84D" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Warns}" ItemTemplate="{StaticResource FindingCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="InfoSection" Spacing="10">
+                        <TextBlock x:Name="InfoHeader" FontSize="14" FontWeight="SemiBold" Foreground="#19B9E6" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Infos}" ItemTemplate="{StaticResource FindingCard}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="ExposedBlock" Spacing="10" Visibility="Collapsed">
+                        <TextBlock x:Name="ExposedTitle" FontSize="14" FontWeight="SemiBold" Foreground="{x:Bind local:Palette.Dim}" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.ExposedShown}" ItemTemplate="{StaticResource Chip}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="200" MinRowSpacing="8" MinColumnSpacing="8" ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+                        <TextBlock x:Name="ExposedMore" FontSize="12" Foreground="{x:Bind local:Palette.Faint}" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="OkSection" Spacing="10">
+                        <TextBlock x:Name="OkHeader" FontSize="14" FontWeight="SemiBold" Foreground="#35F2B3" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Oks}" ItemTemplate="{StaticResource OkRow}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="340" MinRowSpacing="8" MinColumnSpacing="10" ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2" Background="#0C111A" BorderBrush="#1D2636" BorderThickness="1" CornerRadius="16" Padding="18,12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Content="{x:Bind loc:Loc.T('重新检查')}" Click="OnRescan" />
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="{x:Bind local:Palette.Faint}"
+                               Text="{x:Bind loc:Loc.T('这一页只读取状态,不会修改任何设置,也不会结束任何程序。')}" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
