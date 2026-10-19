@@ -16,6 +16,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The icon of TidyWin.exe in Explorer, the Start menu and shortcuts. -->
+    <ApplicationIcon>Assets\TidyWin.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- Size and memory. This is a small tool that sits next to the user's work, so it must stay light. -->
@@ -80,6 +82,11 @@
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
+
+  <!-- Also shipped next to the exe: the window (title bar and taskbar) takes its icon from this file at start-up. -->
+  <ItemGroup>
+    <Content Include="Assets\TidyWin.ico" Link="TidyWin.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TidyWin.Core\TidyWin.Core.csproj" />

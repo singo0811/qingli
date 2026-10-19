@@ -29,6 +29,7 @@ OutputBaseFilename=TidyWin-Setup-{#AppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\src\TidyWin.App\Assets\TidyWin.ico
 UninstallDisplayName=TidyWin
 UninstallDisplayIcon={app}\TidyWin.exe
 ; An update runs this installer over a running copy: ask it to close. It is started again by the last [Run] line below

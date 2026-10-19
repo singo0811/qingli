@@ -32,6 +32,9 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(DragBar);
 
+        var icon = Path.Combine(AppContext.BaseDirectory, "TidyWin.ico");
+        if (File.Exists(icon)) AppWindow.SetIcon(icon);
+
         AppWindow.Resize(new SizeInt32(1220, 900));
         AppWindow.TitleBar.ButtonBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);
         AppWindow.TitleBar.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);

@@ -1,3 +1,5 @@
+<p align="center"><img src="src/TidyWin.App/Assets/TidyWin.png" width="96" alt="TidyWin"></p>
+
 # TidyWin
 
 [English](#english) · [中文](#中文)
