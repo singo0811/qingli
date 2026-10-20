@@ -30,6 +30,46 @@ public sealed partial class SecurityPage : UserControl, IPageLifecycle, IMascotS
         NetProgress.Maximum = NetVm.Total;
         ViewModel.PropertyChanged += OnChanged;
         NetVm.PropertyChanged += OnNetChanged;
+        _watchLoading = true;
+        var settings = AppSettings.Load();
+        WatchToggle.IsChecked = settings.WatchExit;
+        AutoToggle.IsChecked = settings.AutoMaintain;
+        _watchLoading = false;
+        if (ExitWatchService.Running is { } watch) watch.Updated += OnWatchUpdated;
+        ShowWatchLine();
+    }
+
+    private bool _watchLoading;
+
+    private void OnWatchToggle(object sender, RoutedEventArgs e)
+    {
+        if (_watchLoading) return;
+        var on = WatchToggle.IsChecked == true;
+        var settings = AppSettings.Load();
+        settings.WatchExit = on;
+        settings.Save();
+        var watch = ExitWatchService.Running;
+        if (on) watch?.Start();
+        else watch?.Stop();
+        ShowWatchLine();
+    }
+
+    private void OnAutoToggle(object sender, RoutedEventArgs e)
+    {
+        if (_watchLoading) return;
+        var settings = AppSettings.Load();
+        settings.AutoMaintain = AutoToggle.IsChecked == true;
+        settings.Save();
+    }
+
+    private void OnWatchUpdated() => DispatcherQueue.TryEnqueue(ShowWatchLine);
+
+    private void ShowWatchLine()
+    {
+        var watch = ExitWatchService.Running;
+        WatchLine.Text = watch is { Enabled: true }
+            ? ExitWatch.Status(watch.State, watch.LastIp, watch.LastCountry)
+            : Loc.T("出口守望已关掉");
     }
 
     // The live check sends requests to other websites, so it only runs when the person presses the button.
@@ -71,6 +111,9 @@ public sealed partial class SecurityPage : UserControl, IPageLifecycle, IMascotS
     /// <summary>Checks once when first shown; after that only when asked.</summary>
     public async void Activate()
     {
+        _watchLoading = true;
+        AutoToggle.IsChecked = AppSettings.Load().AutoMaintain;
+        _watchLoading = false;
         if (_started) return;
         _started = true;
         await ViewModel.ScanAsync();

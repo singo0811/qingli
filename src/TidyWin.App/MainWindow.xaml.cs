@@ -5,7 +5,10 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System.Runtime.InteropServices;
 using TidyWin.Core.Insights;
+using TidyWin.Core.Localization;
+using TidyWin.Core.Security;
 using TidyWin.Platform;
 using Windows.Graphics;
 
@@ -20,6 +23,11 @@ public sealed partial class MainWindow : Window
     private readonly Func<UIElement>[] _factories;
     private readonly UIElement?[] _pages = new UIElement?[13];
     private readonly MemorySampler _sampler;
+    private readonly ExitWatchService _exitWatch = null!;
+    private readonly TrayIcon _tray = null!;
+    private readonly Resident _resident = null!;
+    private bool _exitDialog;
+    private bool _exit;
     private int _current = -1;
     private bool _windowVisible = true;
 
@@ -95,6 +103,27 @@ public sealed partial class MainWindow : Window
                 _sampler.SetCadence(MemorySampler.Background); // the memory page raises it again in Activate
                 Page(_current)?.Activate();
             }
+        };
+
+        _exitWatch = new ExitWatchService(new WindowsAiNetwork());
+        _exitWatch.Updated += () => DispatcherQueue.TryEnqueue(ShowWatchBanner);
+        _exitWatch.Alerted += (alert, ip, country) => DispatcherQueue.TryEnqueue(() => _ = WarnExitAsync(alert, ip, country));
+        if (AppSettings.Load().WatchExit) _exitWatch.Start();
+        _tray = new TrayIcon(ShowFromTray, ExitFromTray, () => AppSettings.Load().AutoMaintain, SetAutoMaintain);
+        _resident = new Resident(_tray);
+        _resident.Start();
+        AppWindow.Closing += OnAppClosing;
+        try
+        {
+            var show = EventWaitHandle.OpenExisting(@"Local\TidyWin.Show");
+            ThreadPool.RegisterWaitForSingleObject(show, (_, _) => DispatcherQueue.TryEnqueue(ShowFromTray), null, Timeout.Infinite, false);
+        }
+        catch (WaitHandleCannotBeOpenedException) { }
+        Closed += (_, _) =>
+        {
+            _resident.Dispose();
+            _tray.Dispose();
+            _exitWatch.Dispose();
         };
 
         // TIDYWIN_TAB=0..5 opens a given page directly (screenshots and tests).
@@ -336,6 +365,84 @@ public sealed partial class MainWindow : Window
             UpdateButton.IsEnabled = true;
         }
     }
+
+    private void OnAppClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_exit || !_tray.Ready) return;
+        args.Cancel = true;
+        sender.Hide();
+    }
+
+    private void ShowFromTray()
+    {
+        AppWindow.Show();
+        BringForward();
+    }
+
+    private void ExitFromTray()
+    {
+        _exit = true;
+        Close();
+    }
+
+    private void SetAutoMaintain(bool on)
+    {
+        var settings = AppSettings.Load();
+        settings.AutoMaintain = on;
+        settings.Save();
+    }
+
+    private void ShowWatchBanner()
+    {
+        var bad = _exitWatch.Enabled && _exitWatch.State is ExitWatchState.Offline or ExitWatchState.China;
+        WatchBanner.Visibility = bad ? Visibility.Visible : Visibility.Collapsed;
+        if (bad) WatchText.Text = ExitWatch.Status(_exitWatch.State, _exitWatch.LastIp, _exitWatch.LastCountry);
+    }
+
+    private async Task WarnExitAsync(ExitAlert alert, string? ip, string? country)
+    {
+        ShowWatchBanner();
+        if (alert == ExitAlert.None) return;
+        var closed = await Task.Run(ClaudeStopper.Close);
+        var head = alert == ExitAlert.Offline
+            ? Loc.T("网络断了。")
+            : Loc.F("网络出口变成中国了({0})。", ExitWatch.Where(ip, country));
+        var tail = closed > 0
+            ? Loc.F("已关掉 {0} 个 Claude 进程。等网络和 VPN 恢复后再打开。", closed)
+            : Loc.T("没有发现正在运行的 Claude。等网络和 VPN 恢复后再打开。");
+        var body = head + tail;
+        ShowFromTray();
+        _tray.Balloon(Loc.T("网络出问题了"), body);
+        if (_exitDialog || Root.XamlRoot is null) return;
+        _exitDialog = true;
+        try { await Tell(Loc.T("网络出问题了"), body); }
+        catch (Exception) { /* the red bar and the tray note stay up even if the dialog cannot open */ }
+        finally { _exitDialog = false; }
+    }
+
+    private void BringForward()
+    {
+        AppWindow.Show();
+        if (AppWindow.Presenter is OverlappedPresenter presenter && presenter.State == OverlappedPresenterState.Minimized)
+            presenter.Restore();
+        Activate();
+        try
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            FlashWindow(hwnd, true);
+            MessageBeep(0x30);
+        }
+        catch (Exception)
+        {
+            // The reminder still shows in the window when the flash cannot be sent.
+        }
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool FlashWindow(IntPtr hwnd, bool invert);
+
+    [DllImport("user32.dll")]
+    private static extern bool MessageBeep(uint type);
 
     private async Task Tell(string title, string body) =>
         await new ContentDialog { Title = title, Content = new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap }, CloseButtonText = TidyWin.Core.Localization.Loc.T("知道了"), XamlRoot = Root.XamlRoot, RequestedTheme = ElementTheme.Dark }.ShowAsync();

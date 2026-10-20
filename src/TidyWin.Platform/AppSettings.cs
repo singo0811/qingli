@@ -30,6 +30,14 @@ public sealed class AppSettings
     /// <summary>The person's own ipapi.is key (free account), used only to ask how their exit address is rated. Empty: that part is skipped.</summary>
     public string IpQualityKeyText { get; set; } = "";
 
+    /// <summary>While the program is open, say so at once if the network drops or the exit becomes Chinese, and close Claude.</summary>
+    public bool WatchExit { get; set; } = true;
+
+    /// <summary>While the program is open, clear rebuildable caches and return idle memory on a schedule.</summary>
+    public bool AutoMaintain { get; set; } = true;
+
+    public DateTime? LastAutoCleanUtc { get; set; }
+
     /// <summary>The key to use: the environment variable wins over the settings file. Only plain key characters are accepted.</summary>
     public static string IpQualityKey(AppSettings s)
     {
@@ -93,6 +101,11 @@ public sealed class AppSettings
             settings.LastUpdateCheckUtc = Date(root, "lastUpdateCheckUtc");
             if (root.TryGetProperty("ipQualityKey", out var iq) && iq.ValueKind == JsonValueKind.String && iq.GetString() is { Length: <= 128 } iqs)
                 settings.IpQualityKeyText = iqs;
+            if (root.TryGetProperty("watchExit", out var wx) && wx.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.WatchExit = wx.GetBoolean();
+            if (root.TryGetProperty("autoMaintain", out var am) && am.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.AutoMaintain = am.GetBoolean();
+            settings.LastAutoCleanUtc = Date(root, "lastAutoCleanUtc");
             settings.LastCleanUtc = Date(root, "lastCleanUtc");
             if (root.TryGetProperty("lastCleanBytes", out var lb) && lb.ValueKind == JsonValueKind.Number && lb.TryGetInt64(out var cleaned) && cleaned >= 0)
                 settings.LastCleanBytes = cleaned;
@@ -152,6 +165,9 @@ public sealed class AppSettings
                 if (UpdateFeed.Length > 0) w.WriteString("updateFeed", UpdateFeed);
                 if (!AutoCheckUpdates) w.WriteBoolean("autoCheckUpdates", false);
                 if (IpQualityKeyText.Length > 0) w.WriteString("ipQualityKey", IpQualityKeyText);
+                if (!WatchExit) w.WriteBoolean("watchExit", false);
+                if (!AutoMaintain) w.WriteBoolean("autoMaintain", false);
+                if (LastAutoCleanUtc is { } ac) w.WriteString("lastAutoCleanUtc", ac.ToString("O", CultureInfo.InvariantCulture));
                 if (LastUpdateCheckUtc is { } lu) w.WriteString("lastUpdateCheckUtc", lu.ToString("O", CultureInfo.InvariantCulture));
                 if (LastCleanUtc is { } lc) w.WriteString("lastCleanUtc", lc.ToString("O", CultureInfo.InvariantCulture));
                 if (LastCleanBytes > 0) w.WriteNumber("lastCleanBytes", LastCleanBytes);

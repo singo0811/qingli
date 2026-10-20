@@ -5,6 +5,8 @@ namespace TidyWin.App;
 public partial class App : Application
 {
     private Window? _window;
+    private static Mutex? _single;
+    private static EventWaitHandle? _show;
 
     public App()
     {
@@ -22,6 +24,11 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (!TakeSingleInstance())
+        {
+            Exit();
+            return;
+        }
         try
         {
             _window = new MainWindow();
@@ -32,6 +39,27 @@ public partial class App : Application
             CrashLog.Write("Launch", e);
             throw;
         }
+    }
+
+    /// <summary>A second launch only asks the one already running to show itself.</summary>
+    private static bool TakeSingleInstance()
+    {
+        _single = new Mutex(false, @"Local\TidyWin.Single");
+        try
+        {
+            if (!_single.WaitOne(0))
+            {
+                try { EventWaitHandle.OpenExisting(@"Local\TidyWin.Show").Set(); }
+                catch (WaitHandleCannotBeOpenedException) { }
+                return false;
+            }
+        }
+        catch (AbandonedMutexException)
+        {
+            // The previous run ended without releasing it. This run holds it now.
+        }
+        _show = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\TidyWin.Show");
+        return true;
     }
 }
 

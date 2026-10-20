@@ -206,7 +206,19 @@
                 </Grid.RowDefinitions>
 
                 <!-- 磁盘紧张时的一条建议:只在有真实测量依据时出现,可以"稍后"收起 -->
-                <Border x:Name="Banner" Grid.Row="0" Visibility="Collapsed" Margin="28,2,28,0" Padding="16,10,12,10"
+                <StackPanel Grid.Row="0" Spacing="8">
+                <Border x:Name="WatchBanner" Visibility="Collapsed" Margin="28,2,28,0" Padding="16,12" CornerRadius="12" BorderThickness="1"
+                        Background="#33FF5A6A" BorderBrush="#FFFF6B7A">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE7BA;" FontSize="18" Foreground="#FF8A9A" VerticalAlignment="Center" />
+                        <TextBlock x:Name="WatchText" Grid.Column="1" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+                <Border x:Name="Banner" Visibility="Collapsed" Margin="28,2,28,0" Padding="16,10,12,10"
                         CornerRadius="12" BorderThickness="1" Background="#1AFFB84D" BorderBrush="#55FFB84D">
                     <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
@@ -225,6 +237,7 @@
                                 Background="Transparent" BorderThickness="0" />
                     </Grid>
                 </Border>
+                </StackPanel>
 
                 <Grid x:Name="PageHost" Grid.Row="1" />
             </Grid>

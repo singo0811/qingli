@@ -137,6 +137,15 @@
                                            Text="{x:Bind loc:Loc.T('AI 工具最常见的毛病是「浏览器能上,Claude Code、Codex 这类命令行和客户端却上不去」。这里按两家官方文档列出的域名(Claude 的接口、登录、更新;OpenAI 的登录、ChatGPT 后端、接口),加上 Gemini、Cursor 和常用下载站,各发一次不带账号和密钥的普通请求,分别测「直连」和「按这台电脑的代理设置连」。同时请这些网站自己报出「它看到你从哪个国家、哪个地址来」(最准,按 IPv4 / IPv6 分开看),再向 ipinfo.io(不行换 ipapi.co、ip.sb)查你的出口地址和网络类型。它们只会看到本来就对所有网站可见的出口 IP。')}" />
                                 <TextBlock FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" LineHeight="18"
                                            Text="{x:Bind loc:Loc.T('另外会给出口地址打一个估算分:它是机房、VPN、代理还是 Tor,DNS 查询是否从同一处出去,系统时区是否与出口所在地一致,以及和上次相比有没有变化。VPN、代理、滥用记录这几项要填你自己的 ipapi.is 密钥(设置文件里的 ipQualityKey,或环境变量 TIDYWIN_IPAPI_KEY);没填就只按机房名称估计,分数会偏乐观。这个分数是本程序自己的估算,不是任何服务的判定。浏览器指纹和 WebRTC 泄漏属于网页里的检查,桌面程序测不了。')}" />
+                                <CheckBox x:Name="WatchToggle" Checked="OnWatchToggle" Unchecked="OnWatchToggle"
+                                          Content="{x:Bind loc:Loc.T('断网或出口变成中国时,立刻关掉 Claude')}" />
+                                <TextBlock FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" LineHeight="18"
+                                           Text="{x:Bind loc:Loc.T('网卡一变就查一次出口,平时每 90 秒再看一次。断网或出口变成中国时,会关掉名为 Claude 的进程(先让它自己退出,退不掉再结束)。查的是公开的出口地址,关掉这个开关就不会因为守望去连别的地方。')}" />
+                                <CheckBox x:Name="AutoToggle" Checked="OnAutoToggle" Unchecked="OnAutoToggle"
+                                          Content="{x:Bind loc:Loc.T('留在托盘时,自动清理可重建的缓存,并让出空闲内存')}" />
+                                <TextBlock FontSize="12" Foreground="{x:Bind local:Palette.Faint}" TextWrapping="Wrap" LineHeight="18"
+                                           Text="{x:Bind loc:Loc.T('关闭窗口后程序留在任务栏右下角。缓存大约每 6 小时清一次,只清会自动重建的;聊天记录、模型和你的文件不动。空闲内存大约每 15 分钟整理一次,不关闭那些程序。')}" />
+                                <TextBlock x:Name="WatchLine" FontSize="12" Foreground="{x:Bind local:Palette.Dim}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="14">
                                     <Button x:Name="NetButton" Content="{x:Bind loc:Loc.T('开始检查')}" Click="OnCheckNet" Padding="20,8" />
                                     <ProgressBar x:Name="NetProgress" Width="200" Maximum="9" Foreground="#19B9E6" Visibility="Collapsed" VerticalAlignment="Center" />

@@ -67,6 +67,20 @@ public sealed class AppSettingsMemoryTests : IDisposable
     {
         var s = AppSettings.Load(File_);
         Assert.Null(s.LastCleanUtc);
+        Assert.True(s.WatchExit);
+    }
+
+    [Fact]
+    public void Turning_the_exit_watch_off_is_remembered_and_turning_it_on_clears_that()
+    {
+        var off = new AppSettings { WatchExit = false };
+        Assert.True(off.Save(File_));
+        Assert.False(AppSettings.Load(File_).WatchExit);
+        var on = AppSettings.Load(File_);
+        on.WatchExit = true;
+        Assert.True(on.Save(File_));
+        Assert.True(AppSettings.Load(File_).WatchExit);
+        Assert.DoesNotContain("watchExit", File.ReadAllText(File_));
     }
 
     [Fact]

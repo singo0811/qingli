@@ -58,6 +58,10 @@ Pressing the button tests AI endpoints directly and through the computer's proxy
 - Browser fingerprint and WebRTC leak tests belong to web pages; a desktop program cannot run them.
 - Nothing is sent until you press the button.
 
+The same page watches the exit while the program is open (on by default; the checkbox turns it off, saved as `"watchExit": false`). When the network drops, or the exit country becomes China, it closes processes named Claude (the window is asked to exit first; a process that does not leave is then ended) and brings the window forward. A network change is checked a moment later, and there is a backup check every 90 seconds. A failed lookup is not treated as "offline".
+
+Closing the window leaves TidyWin in the notification area. While it is running it returns idle programs' unused memory about every 15 minutes, and about every 6 hours it deletes only caches that rebuild themselves. Chats, models and your files are not part of that. `"autoMaintain": false` turns it off. The tray menu's Exit is what actually quits.
+
 ### Languages
 
 Source text is Chinese; the Chinese sentence is the key into `src/TidyWin.Core/Localization/en.json`. A sentence without a translation shows in Chinese. Contributions of other languages are welcome.
@@ -86,6 +90,10 @@ Inspired by the idea of Mole (a macOS cleaner). TidyWin is an independent, origi
 ### 构建、安装包与更新
 
 AI 联网检查还会给出口地址估一个分(机房 / VPN / 代理 / Tor / 滥用记录、DNS 是否同出口、时区是否对得上、是否与上次不同),是本程序自己的估算,不是任何 AI 服务的判定。VPN / 代理 / Tor / 滥用这几项要你自己的 [ipapi.is](https://ipapi.is) 免费密钥,写进 `settings.json` 的 `ipQualityKey` 或环境变量 `TIDYWIN_IPAPI_KEY`;没填就只按网络名称估计并如实说明。浏览器指纹和 WebRTC 泄漏属于网页检查,桌面程序测不了。点按钮前不会发任何请求。
+
+同一页在程序开着时守望出口(默认开着,取消勾选后记在 `watchExit: false`)。断网,或出口变成中国,会关掉名为 Claude 的进程(先让它自己退出,退不掉再结束),并把窗口拉到前面。网卡变化稍后查一次,另外每 90 秒再看一次。查不到出口不算断网。
+
+关掉窗口后程序留在任务栏右下角。大约每 15 分钟让出空闲程序用不到的内存,大约每 6 小时只删除会自动重建的缓存。聊天记录、模型和你的文件不在其中。`autoMaintain: false` 可以关掉。托盘菜单里的「退出」才会真正结束程序。
 
 见上方 English 部分的命令。更新来源默认为空,此时程序不会连接任何地方;设置 `updateFeed` 后每天最多查一次,点击后才会下载安装,下载内容必须与清单里的 `sha256` 和大小一致。
 
