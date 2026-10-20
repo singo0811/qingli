@@ -100,8 +100,16 @@ public sealed class WindowsAiNetwork : IAiNetworkSource
     private static extern int GetUserDefaultLocaleName(System.Text.StringBuilder name, int capacity);
 
     /// <summary>The lookup site sees the address every other site already sees; it is told nothing else.</summary>
-    public async Task<ExitInfo?> LookupExitAsync(bool followComputerProxy, CancellationToken ct = default)
+    public Task<ExitInfo?> LookupExitAsync(bool followComputerProxy, CancellationToken ct = default) =>
+        LookupAsync(null, followComputerProxy, ct);
+
+    public Task<ExitInfo?> LookupAddressAsync(string ip, CancellationToken ct = default) =>
+        IPAddress.TryParse(ip, out var parsed) ? LookupAsync(parsed.ToString(), false, ct) : Task.FromResult<ExitInfo?>(null);
+
+    private async Task<ExitInfo?> LookupAsync(string? address, bool followComputerProxy, CancellationToken ct)
     {
+        // The address was parsed as an IP first, so it is safe to put in a path.
+        var slash = address is null ? "" : address + "/";
         using var handler = new SocketsHttpHandler
         {
             UseProxy = followComputerProxy,
@@ -116,9 +124,9 @@ public sealed class WindowsAiNetwork : IAiNetworkSource
         // Keyless lookups are rate limited and often shared, so a second and third service are tried in turn.
         foreach (var (url, asnKey, orgKey, countryKey) in new[]
         {
-            ("https://ipinfo.io/json", (string?)null, "org", "country"),
-            ("https://ipapi.co/json/", null, "org", "country_code"),
-            ("https://api.ip.sb/geoip", "asn", "organization", "country_code"),
+            ($"https://ipinfo.io/{slash}json", (string?)null, "org", "country"),
+            ($"https://ipapi.co/{slash}json/", null, "org", "country_code"),
+            (address is null ? "https://api.ip.sb/geoip" : $"https://api.ip.sb/geoip/{address}", "asn", "organization", "country_code"),
         })
         {
             try
@@ -132,12 +140,76 @@ public sealed class WindowsAiNetwork : IAiNetworkSource
                     : v.ValueKind == System.Text.Json.JsonValueKind.Number ? v.ToString() : null;
                 var org = Get(orgKey);
                 if (Get(asnKey) is { Length: > 0 } asn) org = $"AS{asn} {org}".Trim();
-                if (Get("ip") is { Length: > 0 } ip) return new ExitInfo(ip, Get(countryKey), Get("region"), Get("city"), org);
+                if (Get("ip") is { Length: > 0 } ip) return new ExitInfo(ip, Get(countryKey), Get("region"), Get("city"), org, Get("timezone"));
             }
             catch (Exception e) when (e is HttpRequestException or System.Text.Json.JsonException) { /* try the next service */ }
             catch (OperationCanceledException) when (!ct.IsCancellationRequested) { break; /* the shared time limit is used up */ }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Asks ipapi.is how it sees the address the request comes from. The person's own key is used (the anonymous answer has no
+    /// flags). The key goes only to ipapi.is, is never written to a log, and never appears in a message shown on screen.
+    /// </summary>
+    public async Task<ReputationLookup> LookupReputationAsync(bool followComputerProxy, CancellationToken ct = default)
+    {
+        var key = AppSettings.IpQualityKey(AppSettings.Load());
+        if (string.IsNullOrEmpty(key)) return new ReputationLookup(ReputationStatus.NoKey);
+
+        using var handler = new SocketsHttpHandler
+        {
+            UseProxy = followComputerProxy,
+            Proxy = followComputerProxy ? HttpClient.DefaultProxy : null,
+            ConnectTimeout = Timeout,
+            PooledConnectionLifetime = TimeSpan.FromSeconds(1),
+        };
+        using var http = new HttpClient(handler, disposeHandler: false) { Timeout = System.Threading.Timeout.InfiniteTimeSpan, MaxResponseContentBufferSize = 128 * 1024 };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("TidyWin-NetworkCheck/1.0");
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(Timeout);
+        try
+        {
+            using var response = await http.GetAsync($"https://api.ipapi.is/?key={Uri.EscapeDataString(key)}", cts.Token);
+            switch ((int)response.StatusCode)
+            {
+                case 429: return new ReputationLookup(ReputationStatus.Failed, Problem: Loc.T("今天的查询次数用完了"));
+                case 401 or 403: return new ReputationLookup(ReputationStatus.Failed, Problem: Loc.T("密钥被拒绝,请检查是否填对"));
+                case >= 400: return new ReputationLookup(ReputationStatus.Failed, Problem: $"HTTP {(int)response.StatusCode}");
+            }
+            var rep = ExitQuality.ParseIpapiIs(await response.Content.ReadAsStringAsync(cts.Token));
+            return rep is null
+                ? new ReputationLookup(ReputationStatus.Failed, Problem: Loc.T("返回的内容看不懂"))
+                : new ReputationLookup(ReputationStatus.Ok, rep);
+        }
+        catch (HttpRequestException) { return new ReputationLookup(ReputationStatus.Failed, Problem: Loc.T("连不上 ipapi.is")); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return new ReputationLookup(ReputationStatus.Failed, Problem: Loc.T("超时")); }
+    }
+
+    private static readonly string HistoryPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TidyWin", "exit-history.json");
+
+    public IReadOnlyList<ExitHistoryEntry> ReadExitHistory()
+    {
+        try
+        {
+            var info = new FileInfo(HistoryPath);
+            return info.Exists && info.Length <= 64 * 1024 ? ExitQuality.ParseHistory(File.ReadAllText(HistoryPath)) : [];
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return []; }
+    }
+
+    /// <summary>Kept only on this computer, newest first and capped. Failing to write it is never an error.</summary>
+    public void SaveExitHistory(IReadOnlyList<ExitHistoryEntry> history)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(HistoryPath)!);
+            var temp = HistoryPath + ".tmp";
+            File.WriteAllText(temp, ExitQuality.WriteHistory(history));
+            File.Move(temp, HistoryPath, overwrite: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* the history is a convenience */ }
     }
 
     /// <summary>The process copy can be older than what the person set since this program started, so the stored ones count too.</summary>

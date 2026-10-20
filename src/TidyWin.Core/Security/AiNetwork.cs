@@ -39,7 +39,7 @@ public sealed record HostTrace(string Tool, string Host, TraceFamily Family, boo
 }
 
 /// <summary>Where a connection to the internet appears to come from, as a public lookup site reports it.</summary>
-public sealed record ExitInfo(string Ip, string? Country, string? Region, string? City, string? Org)
+public sealed record ExitInfo(string Ip, string? Country, string? Region, string? City, string? Org, string? TimeZone = null)
 {
     public string Where => string.Join(" · ", new[] { City, Country }.Where(s => !string.IsNullOrWhiteSpace(s)));
     public override string ToString() => string.Join("  ", new[] { Ip, Where, Org }.Where(s => !string.IsNullOrWhiteSpace(s)));
@@ -86,6 +86,18 @@ public interface IAiNetworkSource
 
     /// <summary>Asks a public lookup site who it sees. Null when the site cannot be reached or answers nonsense.</summary>
     Task<ExitInfo?> LookupExitAsync(bool followComputerProxy, CancellationToken ct = default);
+
+    /// <summary>Who owns and where is some other address (for example the DNS server the computer's lookups leave from). Null when unknown.</summary>
+    Task<ExitInfo?> LookupAddressAsync(string ip, CancellationToken ct = default) => Task.FromResult<ExitInfo?>(null);
+
+    /// <summary>The reputation of the address the connection leaves from (VPN, proxy, Tor, abuse flags). Needs the person's own ipapi.is key.</summary>
+    Task<ReputationLookup> LookupReputationAsync(bool followComputerProxy, CancellationToken ct = default) =>
+        Task.FromResult(new ReputationLookup(ReputationStatus.NoKey));
+
+    /// <summary>The earlier exit checks kept on this computer, newest first.</summary>
+    IReadOnlyList<ExitHistoryEntry> ReadExitHistory() => [];
+
+    void SaveExitHistory(IReadOnlyList<ExitHistoryEntry> history) { }
 
     /// <summary>The country the computer's region setting names (two letters), or null.</summary>
     string? SystemCountry();

@@ -62,6 +62,8 @@ public sealed partial class AiNetworkViewModel(IAiNetworkSource source) : Observ
     [ObservableProperty] private string? _error;
     [ObservableProperty] private string? _exitText;
     [ObservableProperty] private string? _traceText;
+    [ObservableProperty] private string? _qualityText;
+    [ObservableProperty] private int? _qualityScore;
 
     public int Total => AiNetwork.Endpoints.Count;
     public int Problems => Findings.Count(f => f.Severity is Severity.Warn or Severity.Risk);
@@ -93,13 +95,21 @@ public sealed partial class AiNetworkViewModel(IAiNetworkSource source) : Observ
             var traces = await TraceAllAsync(env, gate, ct);
             TraceText = DescribeTraces(traces);
 
+            // How the exit address itself looks (type, flags, DNS, time zone). Failing here must not lose the rest of the check.
+            ExitQualityResult? quality = null;
+            try { quality = await AssessQualityAsync(env, exitProxy ?? exitDirect, checks, ct); }
+            catch (Exception e) when (e is HttpRequestException or IOException or InvalidOperationException) { /* this part just has no result */ }
+            QualityText = quality?.Text;
+            QualityScore = quality?.Score;
+
             Rows.Clear();
             foreach (var c in checks) Rows.Add(new NetRow(c));
 
             Findings.Clear();
             var found = AiNetwork.AssessChecks(env, checks)
                 .Concat(AiNetwork.AssessExit(env, exitDirect, exitProxy, source.SystemCountry()))
-                .Concat(AiNetwork.AssessTraces(env, traces));
+                .Concat(AiNetwork.AssessTraces(env, traces))
+                .Concat(quality?.Findings ?? []);
             foreach (var f in SystemSecurityAdvisor.Sort(found)) Findings.Add(new FindingViewModel(f));
             OnPropertyChanged(nameof(Problems));
             Phase = NetPhase.Ready;
@@ -113,6 +123,38 @@ public sealed partial class AiNetworkViewModel(IAiNetworkSource source) : Observ
             Error = e.Message;
             Phase = NetPhase.Idle;
         }
+    }
+
+    /// <summary>The address the services see, its reputation, where the DNS lookups leave from, and the earlier checks.</summary>
+    private async Task<ExitQualityResult?> AssessQualityAsync(NetworkEnv env, ExitInfo? main, IReadOnlyList<EndpointCheck> checks, CancellationToken ct)
+    {
+        if (main is null) return null;
+
+        var reputation = source.LookupReputationAsync(env.ProxyConfigured, ct);
+
+        // whoami.akamai.net answers with the address of the DNS server that asked, so it shows where lookups really leave from.
+        var dns = await source.ResolveAsync("whoami.akamai.net", ct);
+        ExitInfo? resolver = null;
+        var publicOne = dns.Select(a => System.Net.IPAddress.TryParse(a, out var ip) ? ip : null)
+            .FirstOrDefault(ip => ip is not null && !AiNetwork.IsFakeIp(ip) && !AiNetwork.IsImpossibleForPublicSite(ip));
+        if (publicOne is not null) resolver = await source.LookupAddressAsync(publicOne.ToString(), ct);
+
+        var history = source.ReadExitHistory();
+        bool Any(ProbeKind k) => checks.Any(c => c.Direct.Kind == k || c.ViaProxy?.Kind == k);
+        var result = ExitQuality.Assess(new ExitQualityInput(
+            main, await reputation, dns, resolver,
+            ProxyOrTunnel: env.ProxyConfigured || env.VirtualAdapters.Count > 0,
+            LocalStandardOffset: TimeZoneInfo.Local.BaseUtcOffset,
+            RegionRefused: Any(ProbeKind.RegionBlocked), Challenged: Any(ProbeKind.Challenged), Blocked: Any(ProbeKind.Blocked),
+            Previous: history.FirstOrDefault()));
+
+        var text = result.Text;
+        if (history.Count > 0)
+            text += "\n" + Loc.T("最近几次:") + "\n" + string.Join("\n", history.Take(5).Select(h =>
+                $"  {h.AtUtc.ToLocalTime():yyyy-MM-dd HH:mm}  {h.Ip}  {h.Country}  {h.Score}"));
+
+        source.SaveExitHistory(ExitQuality.AddHistory(history, new ExitHistoryEntry(DateTime.UtcNow, main.Ip, main.Country, main.Org, result.Score)));
+        return result with { Text = text };
     }
 
     private async Task<EndpointCheck> CheckOneAsync(AiEndpoint e, NetworkEnv env, SemaphoreSlim gate, CancellationToken ct)

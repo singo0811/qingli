@@ -49,6 +49,15 @@ The app never contacts anything until you set `"updateFeed": "https://…/latest
 
 > The checksum protects against corruption and a swapped file, not against a hacked host, because the checksum comes from the same place. Sign the installer and host the feed somewhere you control.
 
+### Exit-address check (Security page → AI network check)
+
+Pressing the button tests AI endpoints directly and through the computer's proxy, asks the services which country they see you from, and rates the exit address. The rating is TidyWin's own estimate (data-center / VPN / proxy / Tor / abuse flags, whether DNS lookups leave from the same country, whether the system time zone fits the exit's location, whether the address changed since last time). It is not any AI service's verdict.
+
+- The VPN / proxy / Tor / abuse flags come from [ipapi.is](https://ipapi.is), which needs a key. Put your own (free) key in `"ipQualityKey"` in `settings.json` or the `TIDYWIN_IPAPI_KEY` environment variable. Without it the score only uses the network name and says so. The key is sent to ipapi.is only.
+- DNS is tested with `whoami.akamai.net`; the last 20 results are kept in `%LOCALAPPDATA%\TidyWin\exit-history.json`.
+- Browser fingerprint and WebRTC leak tests belong to web pages; a desktop program cannot run them.
+- Nothing is sent until you press the button.
+
 ### Languages
 
 Source text is Chinese; the Chinese sentence is the key into `src/TidyWin.Core/Localization/en.json`. A sentence without a translation shows in Chinese. Contributions of other languages are welcome.
@@ -75,6 +84,8 @@ Inspired by the idea of Mole (a macOS cleaner). TidyWin is an independent, origi
 - 中英文界面(跟随 Windows,标题栏按钮可切换)。
 
 ### 构建、安装包与更新
+
+AI 联网检查还会给出口地址估一个分(机房 / VPN / 代理 / Tor / 滥用记录、DNS 是否同出口、时区是否对得上、是否与上次不同),是本程序自己的估算,不是任何 AI 服务的判定。VPN / 代理 / Tor / 滥用这几项要你自己的 [ipapi.is](https://ipapi.is) 免费密钥,写进 `settings.json` 的 `ipQualityKey` 或环境变量 `TIDYWIN_IPAPI_KEY`;没填就只按网络名称估计并如实说明。浏览器指纹和 WebRTC 泄漏属于网页检查,桌面程序测不了。点按钮前不会发任何请求。
 
 见上方 English 部分的命令。更新来源默认为空,此时程序不会连接任何地方;设置 `updateFeed` 后每天最多查一次,点击后才会下载安装,下载内容必须与清单里的 `sha256` 和大小一致。
 

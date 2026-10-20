@@ -27,6 +27,17 @@ public sealed class AppSettings
 
     public DateTime? LastUpdateCheckUtc { get; set; }
 
+    /// <summary>The person's own ipapi.is key (free account), used only to ask how their exit address is rated. Empty: that part is skipped.</summary>
+    public string IpQualityKeyText { get; set; } = "";
+
+    /// <summary>The key to use: the environment variable wins over the settings file. Only plain key characters are accepted.</summary>
+    public static string IpQualityKey(AppSettings s)
+    {
+        var raw = Environment.GetEnvironmentVariable("TIDYWIN_IPAPI_KEY") is { Length: > 0 } e ? e : s.IpQualityKeyText;
+        raw = raw.Trim();
+        return raw.Length is > 0 and <= 128 && raw.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_') ? raw : "";
+    }
+
     /// <summary>Last clean-up that really deleted something, so a later suggestion can refer to it.</summary>
     public DateTime? LastCleanUtc { get; set; }
     public long LastCleanBytes { get; set; }
@@ -80,6 +91,8 @@ public sealed class AppSettings
             if (root.TryGetProperty("autoCheckUpdates", out var ac) && ac.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.AutoCheckUpdates = ac.GetBoolean();
             settings.LastUpdateCheckUtc = Date(root, "lastUpdateCheckUtc");
+            if (root.TryGetProperty("ipQualityKey", out var iq) && iq.ValueKind == JsonValueKind.String && iq.GetString() is { Length: <= 128 } iqs)
+                settings.IpQualityKeyText = iqs;
             settings.LastCleanUtc = Date(root, "lastCleanUtc");
             if (root.TryGetProperty("lastCleanBytes", out var lb) && lb.ValueKind == JsonValueKind.Number && lb.TryGetInt64(out var cleaned) && cleaned >= 0)
                 settings.LastCleanBytes = cleaned;
@@ -138,6 +151,7 @@ public sealed class AppSettings
                 if (Language != "auto") w.WriteString("language", Language);
                 if (UpdateFeed.Length > 0) w.WriteString("updateFeed", UpdateFeed);
                 if (!AutoCheckUpdates) w.WriteBoolean("autoCheckUpdates", false);
+                if (IpQualityKeyText.Length > 0) w.WriteString("ipQualityKey", IpQualityKeyText);
                 if (LastUpdateCheckUtc is { } lu) w.WriteString("lastUpdateCheckUtc", lu.ToString("O", CultureInfo.InvariantCulture));
                 if (LastCleanUtc is { } lc) w.WriteString("lastCleanUtc", lc.ToString("O", CultureInfo.InvariantCulture));
                 if (LastCleanBytes > 0) w.WriteNumber("lastCleanBytes", LastCleanBytes);

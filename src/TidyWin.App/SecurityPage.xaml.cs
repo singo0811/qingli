@@ -58,6 +58,10 @@ public sealed partial class SecurityPage : UserControl, IPageLifecycle, IMascotS
             case nameof(AiNetworkViewModel.ExitText):
                 NetExit.Text = NetVm.ExitText ?? "";
                 break;
+            case nameof(AiNetworkViewModel.QualityText):
+                NetQuality.Text = NetVm.QualityText ?? "";
+                NetQuality.Visibility = string.IsNullOrEmpty(NetVm.QualityText) ? Visibility.Collapsed : Visibility.Visible;
+                break;
             case nameof(AiNetworkViewModel.TraceText):
                 NetTrace.Text = NetVm.TraceText ?? "";
                 break;
