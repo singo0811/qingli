@@ -143,6 +143,6 @@ public class UpdaterTests : IDisposable
         Assert.False(back.AutoCheckUpdates);
 
         File.WriteAllText(path, """{ "updateFeed": "http://evil.example/f.json" }""");
-        Assert.Equal("", AppSettings.Load(path).UpdateFeed);
+        Assert.Equal(AppSettings.DefaultUpdateFeed, AppSettings.Load(path).UpdateFeed);
     }
 }

@@ -45,7 +45,7 @@ installer\build.ps1 -Version 1.0.0 -BaseUrl https://your.host/tidywin
 
 This publishes the app, builds `dist\TidyWin-Setup-<version>.exe` (per-user, no administrator prompt) and writes `dist\latest.json`.
 
-The app never contacts anything until you set `"updateFeed": "https://…/latest.json"` in `%LOCALAPPDATA%\TidyWin\settings.json`. Then it checks once a day (`"autoCheckUpdates": false` turns that off), and only installs after you click. The feed must be https, and the download must match the `sha256` and `size` in it.
+The published app looks for updates at the GitHub release (`latest.json`) once a day, and only installs after you click. `"autoCheckUpdates": false` turns the check off. Another https address can be set as `"updateFeed"` in `%LOCALAPPDATA%\TidyWin\settings.json`. The download must match the `sha256` and `size` in the feed.
 
 > The checksum protects against corruption and a swapped file, not against a hacked host, because the checksum comes from the same place. Sign the installer and host the feed somewhere you control.
 
@@ -95,7 +95,7 @@ AI 联网检查还会给出口地址估一个分(机房 / VPN / 代理 / Tor / �
 
 关掉窗口后程序留在任务栏右下角。大约每 15 分钟让出空闲程序用不到的内存,大约每 6 小时只删除会自动重建的缓存。聊天记录、模型和你的文件不在其中。`autoMaintain: false` 可以关掉。托盘菜单里的「退出」才会真正结束程序。
 
-见上方 English 部分的命令。更新来源默认为空,此时程序不会连接任何地方;设置 `updateFeed` 后每天最多查一次,点击后才会下载安装,下载内容必须与清单里的 `sha256` 和大小一致。
+见上方 English 部分的命令。发布版每天最多向 GitHub Release 的 `latest.json` 查一次更新,点击后才下载安装;`"autoCheckUpdates": false` 可关掉。也可以在设置里用 `updateFeed` 换成别的 https 地址。下载内容必须与清单里的 `sha256` 和大小一致。
 
 ### 致谢
 

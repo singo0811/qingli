@@ -19,8 +19,11 @@ public sealed class AppSettings
     /// <summary>"auto" (follow Windows), "zh" or "en". Read once at start; a change shows the next time the program starts.</summary>
     public string Language { get; set; } = "auto";
 
-    /// <summary>Where to look for new versions (an https address of a small JSON file). Empty: no update source, nothing is ever contacted.</summary>
-    public string UpdateFeed { get; set; } = "";
+    /// <summary>The GitHub release feed. A saved https address replaces it. Checking is once a day, and installing still needs a click.</summary>
+    public const string DefaultUpdateFeed = "https://github.com/singo0811/qingli/releases/latest/download/latest.json";
+
+    /// <summary>Where to look for new versions (an https address of a small JSON file).</summary>
+    public string UpdateFeed { get; set; } = DefaultUpdateFeed;
 
     /// <summary>Look once a day, at start-up, when a feed is set. It only looks; installing always needs a click.</summary>
     public bool AutoCheckUpdates { get; set; } = true;
